@@ -91,3 +91,69 @@ docker run -p 8000:8080 online-order-tracking-system
 ```
 
 These commands run your application as a Docker container and listen on port 8000.
+<hr>
+
+# Table Examples 
+
+## Cart Table                  
+
+| id | customer_id | 
+|----|-------------|
+| 1  | 1           |
+| 2  | 2           |
+| 3  | 3           |
+| 4  | 4           |
+| 5  | 5           |
+
+## CartItem Table  
+
+| id | cart_id | product_id | quantity |
+|----|---------|------------|----------|
+| 2  | 1       | 1          | 2        |
+| 3  | 1       | 2          | 1        |
+| 4  | 2       | 3          | 1        |
+| 5  | 3       | 1          | 3        |
+
+## Customer Table  
+
+| id | name    | surname  | password | email                    | isadmin |
+|----|---------|----------|----------|--------------------------|---------|
+| 1  | John    | Doe      | password1| john.doe@example.com     | false   |
+| 2  | Jane    | Doe      | password2| jane.doe@example.com     | false   |
+| 3  | Alice   | Smith    | password3| alice.smith@example.com  | false   |
+| 4  | Bob     | Johnson  | password4| bob.johnson@example.com  | false   |
+| 5  | Charlie | Brown    | password5| charlie.brown@example.com| false   |
+
+## Order Table  
+
+| id | customerid | productid | quantity | status     | orderdate                     | estimateddeliverydate |
+|----|------------|-----------|----------|------------|--------------------------------|----------------------|
+| 1  | 1          | 2         | 1        | SHIPPED    | 2022-02-01 00:00:00.000000   | 2022-02-01           |
+| 2  | 2          | 1         | 3        | DELIVERED  | 2022-03-01 00:00:00.000000   | 2022-04-01           |
+| 3  | 2          | 3         | 1        | CANCELLED  | 2022-04-01 00:00:00.000000   | 2022-05-01           |
+| 4  | 3          | 2         | 2        | CANCELLED  | 2022-05-01 00:00:00.000000   | 2022-06-01           |
+| 5  | 3          | 3         | 4        | CONFIRMED  | 2024-03-15 13:30:00.000000   | 2025-05-01           |
+| 6  | 3          | 3         | 4        | CONFIRMED  | 2024-03-15 13:30:00.000000   | 2025-05-01           |
+| 7  | 3          | 3         | 4        | CONFIRMED  | 2024-03-15 13:30:00.000000   | 2025-05-01           |
+| 8  | 3          | 3         | 4        | DELIVERED  | 2024-03-15 13:30:00.000000   | 2025-05-01           |
+| 9  | 1          | 1         | 4        | CONFIRMED  | 2024-03-15 13:30:00.000000   | 2025-05-01           |
+
+### Product Table
+
+| id | name       | description       | price | numberinstock | category   |
+|----|------------|-------------------|-------|---------------|------------|
+| 1  | Product 1  | This is product 1| 19.99 | 22            | Category 1 |
+| 2  | Product 2  | This is product 2| 29.99 | 29            | Category 3 |
+| 3  | Product 3  | This is product 3| 39.99 | 25            | Category 1 |
+| 4  | Product 4  | This is product 4| 49.99 | 23            | Category 3 |
+| 5  | Product 5  | This is product 5| 59.99 | 31            | Category 3 |
+| 6  | Product 6  | This is product 6| 60.99 | 26            | Category 1 |
+| 7  | Product 7  | This is product 7| 70.99 | 17            | Category 2 |
+| 8  | Product 8  | This is product 8| 80.99 | 38            | Category 3 |
+| 9  | Product 9  | This is product 9| 19.99 | 19            | Category 1 |
+| 10 | Product 10 | This is product 10 | 119.99 | 26            | Category 10|
+
+
+
+
+
