@@ -134,7 +134,8 @@ public class OrderService {
     }
 
     /**
-     * Cancels the order identified by the given order ID and increases the stock of the associated product by the quantity of the canceled order.
+     * Cancels the order identified by the given order ID, sets its status to CANCELLED,
+     * and increases the stock of the associated product by the quantity of the canceled order.
      *
      * @param orderId the ID of the order to be canceled
      * @throws RuntimeException if no order is found with the given order ID
@@ -145,10 +146,12 @@ public class OrderService {
             throw new RuntimeException("Order not found with id: " + orderId);
         }
 
+        order.setStatus(OrderStatus.CANCELLED);
+
         Product product = order.getProduct();
         Integer currentStock = product.getNumberInStock();
         product.setNumberInStock(currentStock + order.getQuantity());
 
-        deleteOrder(orderId);
+        productService.updateProduct(product.getId(), product);
     }
 }
