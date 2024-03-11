@@ -24,7 +24,7 @@ public class CustomerController {
      * Constructs a new CustomerController with the specified CustomerService and PCrypt.
      *
      * @param customerService the CustomerService to be used by the CustomerController
-     * @param crypt the PCrypt to be used by the CustomerController
+     * @param crypt           the PCrypt to be used by the CustomerController
      */
     @Autowired
     public CustomerController(CustomerService customerService, PCrypt crypt) {
@@ -39,10 +39,10 @@ public class CustomerController {
      * @return a ResponseEntity containing the customer details if login is successful, or an error message otherwise
      */
     @PostMapping("/login")
-    public ResponseEntity<?> login(@RequestBody Customer customerLoginDetails){
+    public ResponseEntity<?> login(@RequestBody Customer customerLoginDetails) {
         try {
             Customer customer = customerService.findByEmail(customerLoginDetails.getEmail());
-            if (customer != null && crypt.passwordEncoder().matches(customerLoginDetails.getPassword(), customer.getPassword())){
+            if (customer != null && crypt.passwordEncoder().matches(customerLoginDetails.getPassword(), customer.getPassword())) {
                 return new ResponseEntity<>(customer, HttpStatus.OK);
             }
             return new ResponseEntity<>("Invalid email or password", HttpStatus.UNAUTHORIZED);
@@ -63,8 +63,7 @@ public class CustomerController {
         try {
             if (customerService.findByEmail(customer.getEmail()) != null) {
                 return new ResponseEntity<>("User Already Exists ! ", HttpStatus.CONFLICT);
-            }
-            else {
+            } else {
                 String encryptedPassword = crypt.passwordEncoder().encode(customer.getPassword());
                 customer.setPassword(encryptedPassword);
 
@@ -83,6 +82,22 @@ public class CustomerController {
             return new ResponseEntity<>(customers, HttpStatus.OK);
         } catch (Exception e) {
             return new ResponseEntity<>("An error occurred while retrieving customers", HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    /**
+     * Deletes a customer.
+     *
+     * @param id the ID of the customer to delete
+     * @return a ResponseEntity containing the HTTP status
+     */
+    @DeleteMapping("/{id}")
+    public ResponseEntity<?> deleteById(@PathVariable Long id) {
+        try {
+            customerService.deleteCustomerById(id);
+            return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+        } catch (Exception e) {
+            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 }

@@ -83,4 +83,15 @@ class CustomerServiceTest {
 
         assertEquals(expectedCustomer, actualCustomer);
     }
+
+    @Test
+    public void testDeleteProduct() {
+        Long customerId = 1L;
+
+        doNothing().when(customerRepository).deleteById(customerId);
+
+        customerService.deleteCustomerById(customerId);
+
+        verify(customerRepository, times(1)).deleteById(customerId);
+    }
 }

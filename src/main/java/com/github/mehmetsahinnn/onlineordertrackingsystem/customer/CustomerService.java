@@ -1,6 +1,5 @@
 package com.github.mehmetsahinnn.onlineordertrackingsystem.customer;
 
-import org.json.JSONObject;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
@@ -78,5 +77,11 @@ public class CustomerService {
         }
     }
 
-
+    public void deleteCustomerById(Long id) {
+        try {
+            customerRepository.deleteById(id);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
 }
