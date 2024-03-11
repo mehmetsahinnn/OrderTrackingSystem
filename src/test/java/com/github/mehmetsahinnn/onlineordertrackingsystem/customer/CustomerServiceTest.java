@@ -16,6 +16,9 @@ import java.util.List;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.*;
 
+/**
+ * Unit tests for the CustomerService class.
+ */
 class CustomerServiceTest {
 
     @Mock
@@ -24,13 +27,20 @@ class CustomerServiceTest {
     @InjectMocks
     private CustomerService customerService;
 
+    /**
+     * Initializes Mockito annotations before each test method.
+     */
     @BeforeEach
     public void init() {
         MockitoAnnotations.openMocks(this);
     }
 
+    /**
+     * Tests the saveCustomer method of CustomerService.
+     * Verifies that the saved customer matches the input customer.
+     */
     @Test
-    public void testSaveCustomer(){
+    public void testSaveCustomer() {
         Customer customer = new Customer(1L, "msa", "hin", "password", "john.doe@example.com", false);
 
         when(customerService.saveCustomer(any(Customer.class))).thenReturn(customer);
@@ -40,7 +50,11 @@ class CustomerServiceTest {
         assertEquals(customer.getName(), savedCustomer.getName());
         assertEquals(customer.getPassword(), savedCustomer.getPassword());
     }
-    
+
+    /**
+     * Tests the findAll method of CustomerService.
+     * Verifies that the list of customers returned matches the expected list.
+     */
     @Test
     public void testFindAllCustomer() {
         Customer customer = new Customer(1L, "msa", "hin", "password", "john.doe@example.com", false);
@@ -53,6 +67,10 @@ class CustomerServiceTest {
         assertEquals(expectedCustomers, actualCustomers);
     }
 
+    /**
+     * Tests the findByEmail method of CustomerService.
+     * Verifies that the customer returned matches the expected customer.
+     */
     @Test
     public void testFindCustomerByEmail() {
         Customer expectedCustomer = new Customer(1L, "msa", "hin", "password", "john.doe@example.com", false);
@@ -64,7 +82,10 @@ class CustomerServiceTest {
         assertEquals(expectedCustomer, actualCustomer);
     }
 
-
+    /**
+     * Tests the getCurrentUser method of CustomerService.
+     * Verifies that the current customer returned matches the expected customer.
+     */
     @Test
     public void testGetCurrentCustomer() {
         UserDetails userDetails = mock(UserDetails.class);
@@ -84,6 +105,10 @@ class CustomerServiceTest {
         assertEquals(expectedCustomer, actualCustomer);
     }
 
+    /**
+     * Tests the deleteCustomerById method of CustomerService.
+     * Verifies that the delete operation is invoked once for the specified customer ID.
+     */
     @Test
     public void testDeleteProduct() {
         Long customerId = 1L;

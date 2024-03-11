@@ -16,6 +16,9 @@ import java.util.Optional;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.*;
 
+/**
+ * Unit tests for the OrderService class.
+ */
 @ExtendWith(MockitoExtension.class)
 public class OrderServiceTest {
 
@@ -26,11 +29,18 @@ public class OrderServiceTest {
     @Mock
     private ProductService productService;
 
+    /**
+     * Executes before each test method.
+     */
     @BeforeEach
     public void init() {
         System.out.println(" ");
     }
 
+    /**
+     * Tests the placeOrder method of OrderService.
+     * Verifies that the order is saved correctly and the stock of the product is updated.
+     */
     @Test
     public void testPlaceOrder() {
         Order order = new Order();
@@ -57,6 +67,10 @@ public class OrderServiceTest {
         assertEquals(order.getStatus(), placedOrder.getStatus());
     }
 
+    /**
+     * Tests the getOrderById method of OrderService.
+     * Verifies that the correct order is retrieved by its ID.
+     */
     @Test
     public void testGetOrderById() {
         Order order = new Order();
@@ -68,6 +82,10 @@ public class OrderServiceTest {
         assertEquals(order.getId(), foundOrder.getId());
     }
 
+    /**
+     * Tests the getAllOrders method of OrderService.
+     * Verifies that all orders are retrieved successfully.
+     */
     @Test
     public void testGetAllOrders() {
         Order order1 = new Order();
@@ -84,6 +102,10 @@ public class OrderServiceTest {
         verify(orderRepository, times(1)).findAll();
     }
 
+    /**
+     * Tests the saveOrder method of OrderService.
+     * Verifies that the order is saved correctly.
+     */
     @Test
     public void testSaveOrder() {
         Order order = new Order();
@@ -104,6 +126,10 @@ public class OrderServiceTest {
         verify(orderRepository, times(1)).save(order);
     }
 
+    /**
+     * Tests the deleteOrder method of OrderService.
+     * Verifies that the order is deleted successfully.
+     */
     @Test
     public void testDeleteOrder() {
         Long orderId = 1L;

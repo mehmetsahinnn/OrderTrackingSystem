@@ -1,7 +1,5 @@
 package com.github.mehmetsahinnn.onlineordertrackingsystem.order;
 
-import com.github.mehmetsahinnn.onlineordertrackingsystem.product.Product;
-import com.github.mehmetsahinnn.onlineordertrackingsystem.product.ProductService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
@@ -15,9 +13,13 @@ import java.util.Arrays;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNull;
+
 import static org.mockito.Mockito.*;
 
+
+/**
+ * Unit tests for the OrderController class.
+ */
 public class OrderControllerTest {
 
     @InjectMocks
@@ -25,11 +27,11 @@ public class OrderControllerTest {
 
     @Mock
     OrderService orderService;
-    @Mock
-    ProductService productService;
-    @Mock
-    OrderStatus orderStatus;
 
+
+    /**
+     * Initializes Mockito annotations before each test method.
+     */
     @BeforeEach
     public void init() {
         try (AutoCloseable ac = MockitoAnnotations.openMocks(this)) {
@@ -45,6 +47,11 @@ public class OrderControllerTest {
         }
     }
 
+
+    /**
+     * Tests the placeOrder method of OrderController.
+     * Verifies that the response status is CREATED and the returned order matches the expected order.
+     */
     @Test
     public void placeOrderTest(){
         Order wantedOrder = new Order();
@@ -64,6 +71,10 @@ public class OrderControllerTest {
         assertEquals(requestedOrder, response.getBody());
     }
 
+    /**
+     * Tests the getAllOrders method of OrderController.
+     * Verifies that the response status is OK and the returned list of orders matches the expected list.
+     */
     @Test
     public void getAllOrdersTest(){
         Order order1 = new Order();
@@ -87,6 +98,10 @@ public class OrderControllerTest {
 
     }
 
+    /**
+     * Tests the getOrderById method of OrderController.
+     * Verifies that the response status is OK and the returned order matches the expected order.
+     */
     @Test
     public void getOrderByIdTest(){
         Order order = new Order();
@@ -102,6 +117,10 @@ public class OrderControllerTest {
         assertEquals(order, response.getBody());
     }
 
+    /**
+     * Tests the updateOrder method of OrderController.
+     * Verifies that the response status is OK and the returned order matches the expected updated order.
+     */
     @Test
     public void updateOrderTest(){
         Order baseOrder = new Order();
@@ -127,25 +146,23 @@ public class OrderControllerTest {
         assertEquals(updatedOrder, response.getBody());
     }
 
+    /**
+     * Tests the deleteOrder method of OrderController.
+     * Verifies that the cancelOrderAndIncreaseStock method of OrderService is called once with the specified order ID.
+     */
     @Test
     void deleteOrderTest() {
-        Long orderId = 1L;
-        Order order = new Order();
-        order.setId(orderId);
-        Product product = new Product();
-        product.setNumberInStock(10);
-        order.setProduct(product);
-        order.setQuantity(1);
-        when(orderService.getOrderById(orderId)).thenReturn(order);
+        long orderId = 1L;
 
-        ResponseEntity<Void> responseEntity = orderController.deleteOrder(orderId);
+        orderController.deleteOrder(orderId);
 
-        assertEquals(HttpStatus.NO_CONTENT, responseEntity.getStatusCode());
-        verify(orderService, times(1)).deleteOrder(orderId);
-        assertEquals(11, product.getNumberInStock());
+        verify(orderService, times(1)).cancelOrderAndIncreaseStock(orderId);
     }
 
-
+    /**
+     * Tests the getEstimatedDeliveryDate method of OrderController.
+     * Verifies that the response status is OK and the returned estimated delivery date matches the expected date.
+     */
     @Test
     void testGetEstimatedDeliveryDate() {
         Order order = new Order();
@@ -158,7 +175,5 @@ public class OrderControllerTest {
         assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
         assertEquals(order.getEstimatedDeliveryDate(), responseEntity.getBody());
     }
-
-
 
 }

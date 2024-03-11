@@ -58,6 +58,7 @@ public class CustomerController {
      * @return a ResponseEntity containing the registered customer details with encrypted password
      * if registration is successful, or an error message otherwise
      */
+    @PostMapping("/register")
     public ResponseEntity<?> registerUser(@RequestBody Customer customer) {
         try {
             customerService.registerNewCustomer(customer);

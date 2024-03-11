@@ -18,6 +18,9 @@ import org.mockito.MockitoAnnotations;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.*;
 
+/**
+ * Unit tests for the CartService class.
+ */
 public class CartServiceTest {
 
     @InjectMocks
@@ -35,11 +38,18 @@ public class CartServiceTest {
     @Mock
     private ProductService productService;
 
+    /**
+     * Initializes Mockito annotations before each test method.
+     */
     @BeforeEach
     public void init() {
         MockitoAnnotations.openMocks(this);
     }
 
+    /**
+     * Tests the addToCart method of CartService.
+     * Verifies that adding a product to the cart returns the updated cart.
+     */
     @Test
     public void addToCartTest() {
         Product product = new Product();
@@ -59,29 +69,32 @@ public class CartServiceTest {
         verify(cartItemRepository, times(1)).save(any(CartItem.class));
     }
 
-//    @Test
-//    public void testDeleteItemFromCart() {
-//        Cart cart = new Cart();
-//        Product product = new Product();
-//        product.setId(1L);
-//        cart.getItems().add(product);
-//
-//        when(cartRepository.findById(any())).thenReturn(Optional.of(cart));
-//
-//        cartService.deleteItemFromCart(1L);
-//
-//        verify(cartRepository, times(1)).save(argThat(savedCart -> savedCart.getProducts().isEmpty()));
-//    }
+    /**
+     * Tests the {@link CartService#deleteCartItemById(Long)} method to ensure that it correctly deletes a cart item
+     * with the specified ID.
+     */
+    @Test
+    public void testDeleteCartItemById() {
+        Long cartItemId = 1L;
 
-//    @Test
-//    public void testDeleteCart() {
-//        Cart cart = new Cart();
-//        cart.setId(1L);
-//
-//        when(cartRepository.findById(any())).thenReturn(Optional.of(cart));
-//
-//        cartService.deleteCartById(cart.getId());
-//
-//        verify(cartRepository, times(1)).delete(cart);
-//    }
+        doNothing().when(cartRepository).deleteById(cartItemId);
+
+        cartService.deleteCartItemById(cartItemId);
+
+        verify(cartRepository, times(1)).deleteById(cartItemId);
+    }
+    /**
+     * Tests the {@link CartService#deleteCartById(Long)} method to ensure that it correctly deletes a cart
+     * with the specified ID.
+     */
+    @Test
+    public void testDeleteCartById() {
+        Long cartId = 1L;
+
+        doNothing().when(cartRepository).deleteById(cartId);
+
+        cartService.deleteCartById(cartId);
+
+        verify(cartRepository, times(1)).deleteById(cartId);
+    }
 }

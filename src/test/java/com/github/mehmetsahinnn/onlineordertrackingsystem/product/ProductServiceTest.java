@@ -4,7 +4,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
 import org.springframework.boot.test.context.SpringBootTest;
 
 import java.util.Arrays;
@@ -15,6 +14,9 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
+/**
+ * Unit tests for the ProductService class.
+ */
 @SpringBootTest
 public class ProductServiceTest {
 
@@ -23,12 +25,16 @@ public class ProductServiceTest {
 
     @Mock
     private ProductRepository productRepository;
-
+    /**
+     * Initializes the ProductService before each test.
+     */
     @BeforeEach
     public void init() {
         productService = new ProductService(productRepository);
     }
-
+    /**
+     * Tests the saveProduct method of ProductService.
+     */
     @Test
     public void testSaveProduct() {
         Product product = new Product();
@@ -42,7 +48,9 @@ public class ProductServiceTest {
         assertEquals(product.getName(), savedProduct.getName());
         assertEquals(product.getPrice(), savedProduct.getPrice());
     }
-
+    /**
+     * Tests the deleteProduct method of ProductService.
+     */
     @Test
     public void testDeleteProduct() {
         Long productId = 1L;
@@ -53,7 +61,9 @@ public class ProductServiceTest {
 
         verify(productRepository, times(1)).deleteById(productId);
     }
-
+    /**
+     * Tests the getProductById method of ProductService.
+     */
     @Test
     public void testGetProductById() {
         Product product = new Product();
@@ -69,7 +79,9 @@ public class ProductServiceTest {
         assertEquals(product.getName(), retrievedProduct.getName());
         assertEquals(product.getPrice(), retrievedProduct.getPrice());
     }
-
+    /**
+     * Tests the searchProducts method of ProductService.
+     */
     @Test
     public void testSearchProducts() {
         Product product1 = new Product();
@@ -94,7 +106,9 @@ public class ProductServiceTest {
         assertEquals(product1.getId(), retrievedProducts.get(0).getId());
         assertEquals(product2.getId(), retrievedProducts.get(1).getId());
     }
-
+    /**
+     * Tests the updateStock method of ProductService.
+     */
     @Test
     public void testUpdateStock() {
         Product product = new Product();
@@ -110,7 +124,9 @@ public class ProductServiceTest {
 
         assertEquals(10, product.getNumberInStock());
     }
-
+    /**
+     * Tests the findAll method of ProductService.
+     */
     @Test
     public void testFindAll() {
         Product product1 = new Product();

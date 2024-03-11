@@ -16,6 +16,9 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
+/**
+ * Unit tests for the ProductController class.
+ */
 public class ProductControllerTest {
 
     @InjectMocks
@@ -24,6 +27,9 @@ public class ProductControllerTest {
     @Mock
     private ProductService productService;
 
+    /**
+     * Initializes Mockito annotations before each test.
+     */
     @BeforeEach
     public void init() {
         try (AutoCloseable ac = MockitoAnnotations.openMocks(this)) {
@@ -43,6 +49,9 @@ public class ProductControllerTest {
         }
     }
 
+    /**
+     * Tests the listProducts method of ProductController.
+     */
     @Test
     public void testListProducts() {
         Product product1 = new Product();
@@ -65,6 +74,9 @@ public class ProductControllerTest {
         assertEquals(expectedProducts, response.getBody());
     }
 
+    /**
+     * Tests the searchProducts method of ProductController.
+     */
     @Test
     public void testSearchProducts() {
         Product product1 = new Product();
@@ -87,6 +99,9 @@ public class ProductControllerTest {
         assertEquals(expectedProducts, response.getBody());
     }
 
+    /**
+     * Tests the createProduct method of ProductController.
+     */
     @Test
     public void testCreateProduct() {
         Product productToCreate = new Product();
@@ -106,6 +121,9 @@ public class ProductControllerTest {
         assertEquals(createdProduct, response.getBody());
     }
 
+    /**
+     * Tests the getProductById method of ProductController.
+     */
     @Test
     public void getProductById() {
         Product product = new Product();
@@ -122,6 +140,9 @@ public class ProductControllerTest {
         assertEquals(product, response.getBody());
     }
 
+    /**
+     * Tests the updateProduct method of ProductController.
+     */
     @Test
     public void testUpdateProduct() {
         Product existingProduct = new Product();
@@ -129,26 +150,25 @@ public class ProductControllerTest {
         existingProduct.setName("Existing Product");
         existingProduct.setPrice(10.99);
 
-        Product productToUpdate = new Product();
-        productToUpdate.setName("Updated Product");
-        productToUpdate.setPrice(20.99);
-
         Product updatedProduct = new Product();
         updatedProduct.setId(1L);
         updatedProduct.setName("Updated Product");
         updatedProduct.setPrice(20.99);
 
-        when(productService.getProductById(existingProduct.getId())).thenReturn(existingProduct);
-        when(productService.saveProduct(any(Product.class))).thenReturn(updatedProduct);
+        when(productService.updateProduct(existingProduct.getId(), updatedProduct)).thenReturn(updatedProduct);
 
-        ResponseEntity<Product> response = productController.updateProduct(existingProduct.getId(), productToUpdate);
+        ResponseEntity<Product> response = productController.updateProduct(existingProduct.getId(), updatedProduct);
 
+        assertEquals(HttpStatus.OK, response.getStatusCode());
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertEquals(updatedProduct, response.getBody());
     }
 
+    /**
+     * Tests the deleteProduct method of ProductController.
+     */
     @Test
-    public void testDeleteProduct(){
+    public void testDeleteProduct() {
         Product product = new Product();
         product.setId(1L);
         product.setName("Existing Product");
