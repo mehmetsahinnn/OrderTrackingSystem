@@ -187,6 +187,30 @@ public class ProductService {
             throw new RuntimeException("Error occurred while retrieving all products", e);
         }
     }
+
+    /**
+     * Updates the product identified by the given ID with the provided updated product details.
+     *
+     * @param id            the ID of the product to be updated
+     * @param updatedProduct the updated product information
+     * @return the updated product entity if the update operation is successful
+     * @throws RuntimeException if no product is found with the given ID
+     */
+    public Product updateProduct(Long id, Product updatedProduct) {
+        Product existingProduct = getProductById(id);
+        if (existingProduct == null) {
+            throw new RuntimeException("Product not found with id: " + id);
+        }
+
+        existingProduct.setName(updatedProduct.getName());
+        existingProduct.setDescription(updatedProduct.getDescription());
+        existingProduct.setPrice(updatedProduct.getPrice());
+        existingProduct.setNumberInStock(updatedProduct.getNumberInStock());
+        existingProduct.setCategory(updatedProduct.getCategory());
+
+        return saveProduct(existingProduct);
+    }
+
 }
 
 

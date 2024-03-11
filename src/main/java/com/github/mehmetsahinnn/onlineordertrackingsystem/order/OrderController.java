@@ -1,6 +1,5 @@
 package com.github.mehmetsahinnn.onlineordertrackingsystem.order;
 
-import com.github.mehmetsahinnn.onlineordertrackingsystem.product.Product;
 import com.github.mehmetsahinnn.onlineordertrackingsystem.product.ProductService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -114,18 +113,10 @@ public class OrderController {
     @DeleteMapping("/cancel/{id}")
     public ResponseEntity<Void> deleteOrder(@PathVariable Long id) {
         try {
-            Order order = orderService.getOrderById(id);
-            if (order == null) {
-                return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-            }
-
-            Product product = order.getProduct();
-            Integer currentStock = product.getNumberInStock();
-            product.setNumberInStock(currentStock + order.getQuantity());
-
-            orderService.deleteOrder(id);
-
+            orderService.cancelOrderAndIncreaseStock(id);
             return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+        } catch (RuntimeException e) {
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         } catch (Exception e) {
             return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
         }

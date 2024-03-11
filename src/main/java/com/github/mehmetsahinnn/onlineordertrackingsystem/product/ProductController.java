@@ -101,33 +101,25 @@ public class ProductController {
     }
 
     /**
-     * Updates a product.
+     * Updates the product with the specified ID using the provided product details.
      *
-     * @param id      the ID of the product to update
-     * @param product the product data to update
-     * @return a ResponseEntity containing the updated product and the HTTP status
+     * @param id      the ID of the product to be updated
+     * @param product the updated product information
+     * @return a ResponseEntity containing the updated product with HTTP status 200 OK if successful,
+     *         or a ResponseEntity with HTTP status 404 NOT FOUND if no product is found with the given ID,
+     *         or a ResponseEntity with HTTP status 500 INTERNAL SERVER ERROR if an unexpected error occurs
      */
     @PutMapping("/{id}")
     public ResponseEntity<Product> updateProduct(@PathVariable Long id, @RequestBody Product product) {
         try {
-            Product existingProduct = productService.getProductById(id);
-            if (existingProduct == null) {
-                throw new RuntimeException("Product not found with id: " + id);
-            }
-            existingProduct.setName(product.getName());
-            existingProduct.setDescription(product.getDescription());
-            existingProduct.setPrice(product.getPrice());
-            existingProduct.setNumberInStock(product.getNumberInStock());
-            existingProduct.setCategory(product.getCategory());
-            Product updatedProduct = productService.saveProduct(existingProduct);
-            return new ResponseEntity<>(updatedProduct, HttpStatus.OK);
+            Product updatedProduct = productService.updateProduct(id, product);
+            return ResponseEntity.ok(updatedProduct);
         } catch (RuntimeException e) {
-            return new ResponseEntity<>(null, HttpStatus.NOT_FOUND);
+            return ResponseEntity.notFound().build();
         } catch (Exception e) {
-            return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }
-
     /**
      * Deletes a product.
      *

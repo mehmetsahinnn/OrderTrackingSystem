@@ -1,5 +1,6 @@
 package com.github.mehmetsahinnn.onlineordertrackingsystem.customer;
 
+import com.github.mehmetsahinnn.onlineordertrackingsystem.security.PCrypt;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
@@ -13,14 +14,17 @@ import java.util.List;
 @Service
 public class CustomerService {
     private final CustomerRepository customerRepository;
+    private final PCrypt crypt;
 
     /**
      * Constructs a new CustomerService with the specified CustomerRepository.
      *
      * @param customerRepository the CustomerRepository to be used by the CustomerService
+     * @param crypt the crypt class to be used by CustomerService
      */
-    public CustomerService(CustomerRepository customerRepository) {
+    public CustomerService(CustomerRepository customerRepository, PCrypt crypt) {
         this.customerRepository = customerRepository;
+        this.crypt = crypt;
     }
 
     /**
@@ -96,6 +100,23 @@ public class CustomerService {
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
+    }
+
+    /**
+     * Registers a new customer in the system.
+     *
+     * @param customer the customer object to be registered
+     * @throws RuntimeException if a user with the same email already exists in the system
+     */
+    public void registerNewCustomer(Customer customer) {
+        if (findByEmail(customer.getEmail()) != null) {
+            throw new RuntimeException("User already exists with email: " + customer.getEmail());
+        }
+
+        String encryptedPassword = crypt.passwordEncoder().encode(customer.getPassword());
+        customer.setPassword(encryptedPassword);
+
+        saveCustomer(customer);
     }
 
 }

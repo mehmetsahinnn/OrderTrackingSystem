@@ -58,20 +58,14 @@ public class CustomerController {
      * @return a ResponseEntity containing the registered customer details with encrypted password
      * if registration is successful, or an error message otherwise
      */
-    @PostMapping("/register")
     public ResponseEntity<?> registerUser(@RequestBody Customer customer) {
         try {
-            if (customerService.findByEmail(customer.getEmail()) != null) {
-                return new ResponseEntity<>("User Already Exists ! ", HttpStatus.CONFLICT);
-            } else {
-                String encryptedPassword = crypt.passwordEncoder().encode(customer.getPassword());
-                customer.setPassword(encryptedPassword);
-
-                Customer savedUser = customerService.saveCustomer(customer);
-                return ResponseEntity.ok(savedUser);
-            }
+            customerService.registerNewCustomer(customer);
+            return ResponseEntity.ok().build();
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(HttpStatus.CONFLICT).body("User Already Exists !");
         } catch (Exception e) {
-            return new ResponseEntity<>("An error occurred while registering", HttpStatus.INTERNAL_SERVER_ERROR);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("An error occurred while registering");
         }
     }
 
