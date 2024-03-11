@@ -51,11 +51,15 @@ The project is structured into several packages, each containing classes related
 - To register a new customer, send a POST request to `/api/register` with the customer details in the request body.
 - To login, send a POST request to `/api/login` with the customer's email and password in the request body.
 - To retrieve all customers, send a GET request to `/api/customers`.
+- Deletes a customer by their ID. To initiate the deletion, send a DELETE request to `/api/{id}`, where `{id}` represents the ID of the customer to delete.
 
 
 ### Cart Management
 
 - To add a product to the cart, send a POST request to `/api/cart/{productId}/{quantity}`.
+- To delete a shopping cart item with the specified ID, send a DELETE request to `/api/cartitem/{id}`.
+- To delete a shopping cart with the specified ID, send a DELETE request to `/api/cart/{id}`.
+- If an error occurs during deletion of the shopping cart or its item, a 500 Internal Server Error response will be returned.
 
 ## Testing
 

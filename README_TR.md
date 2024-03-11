@@ -29,31 +29,35 @@ Proje, sistemin belirli işlevselliğine ilişkin sınıfları içeren birkaç p
 
 ### Ürün Yönetimi
 
-- Yeni bir ürün eklemek için, ürün detaylarını istek gövdesinde kullanarak bir POST isteği gönderin: `/api/products`.
-- Tüm ürünleri almak için bir GET isteği gönderin: `/api/products`.
-- Belirli bir kategoriye ve fiyat aralığına göre ürünleri aramak için bir GET isteği gönderin: `/api/products/category`. Kategori, minimum fiyat ve maksimum fiyatı istek parametreleri olarak gönderin.
-- Ürünün ID'sine göre almak için bir GET isteği gönderin: `/api/products/{id}`.
-- Bir ürünü güncellemek için, yeni ürün detaylarını istek gövdesinde kullanarak bir PUT isteği gönderin: `/api/products/{id}`.
-- Bir ürünü silmek için bir DELETE isteği gönderin: `/api/products/{id}`.
+- Yeni bir ürün eklemek için, ürün detaylarını içeren bir POST isteği gönderin: `/api/products`.
+- Tüm ürünleri almak için, bir GET isteği gönderin: `/api/products`.
+- Belirli bir kategori ve fiyat aralığına göre ürün aramak için, bir GET isteği gönderin: `/api/products/category` ve kategori, minimum fiyat ve maksimum fiyatı istek parametreleri olarak ekleyin.
+- Bir ürünü ID'ye göre almak için, bir GET isteği gönderin: `/api/products/{id}`.
+- Bir ürünü güncellemek için, yeni ürün detaylarını içeren bir PUT isteği gönderin: `/api/products/{id}`.
+- Bir ürünü silmek için, bir DELETE isteği gönderin: `/api/products/{id}`.
 
 ### Sipariş Yönetimi
 
-- Yeni bir sipariş vermek için, sipariş detaylarını istek gövdesinde kullanarak bir POST isteği gönderin: `/api/orders`.
-- Tüm siparişleri almak için bir GET isteği gönderin: `/api/orders`.
-- Siparişin ID'sine göre almak için bir GET isteği gönderin: `/api/orders/track/{id}`.
-- Bir siparişi güncellemek için, yeni sipariş detaylarını istek gövdesinde kullanarak bir PUT isteği gönderin: `/api/orders/{id}`.
-- Bir siparişi iptal etmek ve siparişin miktarı kadar ürün stoğunu artırmak için bir DELETE isteği gönderin: `/api/orders/cancel/{id}`.
-- Bir siparişin tahmini teslim tarihini almak için siparişin ID'sine göre bir GET isteği gönderin: `/api/orders/track/{id}/estimatedDeliveryDate`.
+- Yeni bir sipariş vermek için, sipariş detaylarını içeren bir POST isteği gönderin: `/api/orders`.
+- Tüm siparişleri almak için, bir GET isteği gönderin: `/api/orders`.
+- Siparişi ID'ye göre almak için, bir GET isteği gönderin: `/api/orders/track/{id}`.
+- Bir siparişi güncellemek için, yeni sipariş detaylarını içeren bir PUT isteği gönderin: `/api/orders/{id}`.
+- Bir siparişi iptal etmek ve sipariş miktarı kadar ürün stoğunu artırmak için, bir DELETE isteği gönderin: `/api/orders/cancel/{id}`.
+- Bir siparişin tahmini teslim tarihini ID'ye göre almak için, bir GET isteği gönderin: `/api/orders/track/{id}/estimatedDeliveryDate`.
 
 ### Müşteri Yönetimi
 
-- Yeni bir müşteri kaydı oluşturmak için, müşteri detaylarını istek gövdesinde kullanarak bir POST isteği gönderin: `/api/register`.
-- Giriş yapmak için, müşterinin e-posta ve şifresini istek gövdesinde kullanarak bir POST isteği gönderin: `/api/login`.
-- Tüm müşterileri almak için bir GET isteği gönderin: `/api/customers`. 
-
+- Yeni bir müşteri kaydetmek için, müşteri detaylarını içeren bir POST isteği gönderin: `/api/register`.
+- Giriş yapmak için, müşterinin e-posta ve şifresini içeren bir POST isteği gönderin: `/api/login`.
+- Tüm müşterileri almak için, bir GET isteği gönderin: `/api/customers`.
+- Bir müşteriyi ID'ye göre silmek için, bir DELETE isteği gönderin: `/api/{id}`.
+  
 ### Sepet Yönetimi
 
 - Ürünü sepete eklemek için, istek gövdesinde ürün ayrıntılarını içeren bir POST isteği gönderin: `/api/cart/{ürünId}/{miktar}`.
+- Bir ürünü sepete eklemek için, bir POST isteği gönderin: `/api/cart/{productId}/{quantity}`.
+- Belirli bir ID'ye sahip bir alışveriş sepeti öğesini silmek için, bir DELETE isteği gönderin: `/api/cartitem/{id}`.
+- Belirli bir ID'ye sahip bir alışveriş sepetini silmek için, bir DELETE isteği gönderin: `/api/cart/{id}`.
 
 ### Test
 
