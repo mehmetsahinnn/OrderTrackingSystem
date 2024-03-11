@@ -6,7 +6,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
@@ -34,29 +33,26 @@ public class OrderService {
     }
 
     /**
-     * Places a new order.
+     * Places a new order. If the product's stock is insufficient or not available, an exception is thrown.
+     * If the order is successfully placed, the product's stock is updated and the order's status is set to CONFIRMED.
+     * The order is then saved in the repository and returned.
      *
      * @param order the order to be placed
      * @return the placed order
+     * @throws IllegalArgumentException if the product's stock is insufficient or not available
      */
-
     public Order placeOrder(Order order) {
-        try {
-            order.setStatus(OrderStatus.CONFIRMED);
-            orderRepository.save(order);
+        Product product = order.getProduct();
+        Integer numberInStock = product.getNumberInStock();
 
-            Product product = order.getProduct();
-            Integer numberInStock = product.getNumberInStock();
-            if (numberInStock == null) {
-                throw new IllegalArgumentException("Number in stock cannot be null");
-            }
-            productService.updateStock(product.getId(), numberInStock - order.getQuantity());
-
-            return order;
-        } catch (Exception e) {
-            logger.error("Error occurred while placing the order: ", e);
-            throw e;
+        if (numberInStock == null || order.getQuantity() > numberInStock){
+            logger.error("Error occurred while placing the order: Insufficient stock or stock information not available.");
+            throw new IllegalArgumentException("Insufficient stock or stock information not available.");
         }
+
+        productService.updateStock(product.getId(), numberInStock - order.getQuantity());
+        order.setStatus(OrderStatus.CONFIRMED);
+        return orderRepository.save(order);
     }
     /**
      * Retrieves an order by its ID.

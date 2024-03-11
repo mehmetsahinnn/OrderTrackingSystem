@@ -41,7 +41,7 @@ public class CustomerController {
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody Customer customerLoginDetails){
         try {
-            Customer customer = customerService.findByEmail(customerLoginDetails.getName());
+            Customer customer = customerService.findByEmail(customerLoginDetails.getEmail());
             if (customer != null && crypt.passwordEncoder().matches(customerLoginDetails.getPassword(), customer.getPassword())){
                 return new ResponseEntity<>(customer, HttpStatus.OK);
             }
@@ -55,7 +55,8 @@ public class CustomerController {
      * Registers a new customer.
      *
      * @param customer the details of the customer to register
-     * @return a ResponseEntity containing the registered customer details if registration is successful, or an error message otherwise
+     * @return a ResponseEntity containing the registered customer details with encrypted password
+     * if registration is successful, or an error message otherwise
      */
     @PostMapping("/register")
     public ResponseEntity<?> registerUser(@RequestBody Customer customer) {
@@ -64,6 +65,9 @@ public class CustomerController {
                 return new ResponseEntity<>("User Already Exists ! ", HttpStatus.CONFLICT);
             }
             else {
+                String encryptedPassword = crypt.passwordEncoder().encode(customer.getPassword());
+                customer.setPassword(encryptedPassword);
+
                 Customer savedUser = customerService.saveCustomer(customer);
                 return ResponseEntity.ok(savedUser);
             }
