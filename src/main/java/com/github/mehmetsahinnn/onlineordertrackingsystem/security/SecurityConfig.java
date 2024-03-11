@@ -8,9 +8,21 @@ import org.springframework.security.config.annotation.web.configurers.AbstractHt
 import org.springframework.security.web.SecurityFilterChain;
 
 
+/**
+ * Configuration class for Spring Security.
+ * This class configures security settings for the application, allowing access to certain endpoints without authentication.
+ */
 @Configuration
 @EnableWebSecurity
 public class SecurityConfig {
+
+    /**
+     * Configures security filters for the HTTP security.
+     *
+     * @param http the HTTP security object to configure
+     * @return the configured SecurityFilterChain object
+     * @throws Exception if an error occurs while configuring the security filter chain
+     */
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http

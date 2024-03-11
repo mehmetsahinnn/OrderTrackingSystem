@@ -75,6 +75,11 @@ public class CustomerController {
         }
     }
 
+    /**
+     * Retrieves a list of all customers.
+     *
+     * @return a ResponseEntity containing the list of customers if retrieval is successful, or an error message otherwise
+     */
     @GetMapping("/customers")
     public ResponseEntity<?> listCustomers() {
         try {

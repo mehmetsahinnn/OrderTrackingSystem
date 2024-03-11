@@ -20,10 +20,12 @@ public class CartService {
     private final ProductService productService;
 
     /**
-     * Constructs a new CartService with the specified CartRepository and UserService.
+     * Constructs a new CartService with the specified CartRepository, CartItemRepository, CustomerService, and ProductService.
      *
-     * @param cartRepository  the CartRepository to be used by the CartService
-     * @param customerService the CustomerService to be used by the CartService
+     * @param cartRepository     the CartRepository to be used by the CartService
+     * @param cartItemRepository the CartItemRepository to be used by the CartService
+     * @param customerService    the CustomerService to be used by the CartService
+     * @param productService     the ProductService to be used by the CartService
      */
     @Autowired
     public CartService(CartRepository cartRepository, CartItemRepository cartItemRepository, CustomerService customerService, ProductService productService) {
@@ -47,6 +49,35 @@ public class CartService {
         cartItemRepository.save(cartItem);
         return cartRepository.findCartByCustomer(customerService.getCurrentUser());
     }
+
+    /**
+     * Deletes a cart with the specified ID.
+     *
+     * @param id the ID of the cart to be deleted
+     * @throws RuntimeException if an error occurs while deleting the cart
+     */
+    public void deleteCartById(Long id) {
+        try {
+            cartRepository.deleteById(id);
+        } catch (Exception e) {
+            throw new RuntimeException("Error occurred while deleting the cart with id: " + id, e);
+        }
+    }
+
+    /**
+     * Deletes a cart item with the specified ID.
+     *
+     * @param id the ID of the cart item to be deleted
+     * @throws RuntimeException if an error occurs while deleting the cart item
+     */
+    public void deleteCartItemById(Long id) {
+        try {
+            cartRepository.deleteById(id);
+        } catch (Exception e) {
+            throw new RuntimeException("Error occurred while deleting the cart item with id: " + id, e);
+        }
+    }
+
 
     private void checkStock(Product product, int quantity) {
         if (product.getNumberInStock() < quantity) {

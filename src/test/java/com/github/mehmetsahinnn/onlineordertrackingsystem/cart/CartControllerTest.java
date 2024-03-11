@@ -16,7 +16,7 @@ import org.springframework.http.ResponseEntity;
 
 import java.util.Objects;
 
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 import static org.springframework.test.util.AssertionErrors.assertEquals;
 
 public class CartControllerTest {
@@ -45,4 +45,31 @@ public class CartControllerTest {
         assertEquals("", HttpStatus.OK.toString(), responseEntity.getStatusCode().toString());
         assertEquals("", updatedCart.toString(), Objects.requireNonNull(responseEntity.getBody()).toString());
     }
+
+    @Test
+    public void testDeleteCartSuccessful() {
+        long cartId = 1L;
+        CartService cartService = mock(CartService.class);
+        doNothing().when(cartService).deleteCartById(cartId);
+        CartController cartController = new CartController(cartService, null);
+
+        ResponseEntity<?> response = cartController.deleteCart(cartId);
+
+        assertEquals("",HttpStatus.NO_CONTENT, response.getStatusCode());
+        verify(cartService, times(1)).deleteCartById(cartId);
+    }
+
+    @Test
+    public void testDeleteCartFailure() {
+        long cartId = 1L;
+        CartService cartService = mock(CartService.class);
+        doNothing().when(cartService).deleteCartById(cartId);
+        CartController cartController = new CartController(cartService, null);
+
+        ResponseEntity<?> response = cartController.deleteCart(cartId);
+
+        assertEquals("",HttpStatus.NO_CONTENT, response.getStatusCode());
+        verify(cartService, times(1)).deleteCartById(cartId);
+    }
+
 }

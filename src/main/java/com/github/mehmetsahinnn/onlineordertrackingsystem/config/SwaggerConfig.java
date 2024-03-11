@@ -12,10 +12,19 @@ import springfox.documentation.service.Contact;
 import springfox.documentation.spi.DocumentationType;
 import springfox.documentation.spring.web.plugins.Docket;
 
+/**
+ * Configuration class for Swagger documentation.
+ * This class configures Swagger to document API endpoints for the online order tracking system.
+ */
 @Configuration
 @EnableWebMvc
 public class SwaggerConfig implements WebMvcConfigurer {
 
+    /**
+     * Configures the Docket bean for Swagger API documentation.
+     *
+     * @return the configured Docket bean
+     */
     @Bean
     public Docket api() {
         return new Docket(DocumentationType.SWAGGER_2).select()
@@ -24,6 +33,11 @@ public class SwaggerConfig implements WebMvcConfigurer {
                 .build().apiInfo(apiInfoMetaData());
     }
 
+    /**
+     * Constructs metadata for API documentation.
+     *
+     * @return the API information
+     */
     private ApiInfo apiInfoMetaData() {
 
         return new ApiInfoBuilder().title("com.github.mehmetsahinnn.onlineordertrackingsystem")

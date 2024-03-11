@@ -14,6 +14,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
+
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.*;
 
@@ -57,4 +58,30 @@ public class CartServiceTest {
         verify(productService, times(1)).saveProduct(product);
         verify(cartItemRepository, times(1)).save(any(CartItem.class));
     }
+
+//    @Test
+//    public void testDeleteItemFromCart() {
+//        Cart cart = new Cart();
+//        Product product = new Product();
+//        product.setId(1L);
+//        cart.getItems().add(product);
+//
+//        when(cartRepository.findById(any())).thenReturn(Optional.of(cart));
+//
+//        cartService.deleteItemFromCart(1L);
+//
+//        verify(cartRepository, times(1)).save(argThat(savedCart -> savedCart.getProducts().isEmpty()));
+//    }
+
+//    @Test
+//    public void testDeleteCart() {
+//        Cart cart = new Cart();
+//        cart.setId(1L);
+//
+//        when(cartRepository.findById(any())).thenReturn(Optional.of(cart));
+//
+//        cartService.deleteCartById(cart.getId());
+//
+//        verify(cartRepository, times(1)).delete(cart);
+//    }
 }

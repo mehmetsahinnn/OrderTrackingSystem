@@ -46,4 +46,38 @@ public class CartController {
             return new ResponseEntity<>(e, HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
+
+    /**
+     * Deletes a shopping cart with the specified ID.
+     *
+     * @param id The ID of the shopping cart to be deleted
+     * @return HTTP response; HttpStatus.NO_CONTENT if the operation is successful, otherwise HttpStatus.INTERNAL_SERVER_ERROR
+     */
+    @DeleteMapping("/cart/{id}")
+    public ResponseEntity<?> deleteCart(@PathVariable Long id){
+        try {
+            cartService.deleteCartById(id);
+            return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+        } catch (Exception e) {
+            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+
+    /**
+     * Deletes a shopping cart item with the specified ID.
+     *
+     * @param id The ID of the shopping cart item to be deleted
+     * @return HTTP response; HttpStatus.NO_CONTENT if the operation is successful, otherwise HttpStatus.INTERNAL_SERVER_ERROR
+     */
+    @DeleteMapping("/cartitem/{id}")
+    public ResponseEntity<?> deleteCartItem(@PathVariable Long id){
+        try {
+            cartService.deleteCartItemById(id);
+            return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+        } catch (Exception e) {
+            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
 }

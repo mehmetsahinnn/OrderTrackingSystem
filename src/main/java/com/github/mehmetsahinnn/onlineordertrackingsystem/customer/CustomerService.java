@@ -69,6 +69,12 @@ public class CustomerService {
         }
     }
 
+    /**
+     * Retrieves all customers from the repository.
+     *
+     * @return A list of all customers
+     * @throws RuntimeException If an error occurs while retrieving the customers
+     */
     public List<Customer> findAll() {
         try {
             return customerRepository.findAll();
@@ -77,6 +83,13 @@ public class CustomerService {
         }
     }
 
+
+    /**
+     * Deletes a customer with the specified ID from the repository.
+     *
+     * @param id The ID of the customer to be deleted
+     * @throws RuntimeException If an error occurs while deleting the customer
+     */
     public void deleteCustomerById(Long id) {
         try {
             customerRepository.deleteById(id);
@@ -84,4 +97,5 @@ public class CustomerService {
             throw new RuntimeException(e);
         }
     }
+
 }
