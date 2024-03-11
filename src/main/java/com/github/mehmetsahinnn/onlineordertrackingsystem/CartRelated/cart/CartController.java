@@ -7,6 +7,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 /**
  * The CartController class provides RESTful API endpoints for managing the shopping cart.
  * It includes an endpoint for adding a product to the cart.
@@ -28,6 +30,23 @@ public class CartController {
         this.cartService = cartService;
         this.productService = productService;
     }
+
+    /**
+     * Retrieves all the carts and returns them as a ResponseEntity.
+     *
+     * @return a ResponseEntity containing the list of carts if retrieval is successful,
+     *         or an error message with HTTP status 500 if an error occurs during retrieval.
+     */
+    @GetMapping
+    public ResponseEntity<?> listCarts() {
+        try {
+            List<Cart> carts = cartService.findAll();
+            return new ResponseEntity<>(carts, HttpStatus.OK);
+        } catch (Exception e) {
+            return new ResponseEntity<>("An error occurred while retrieving carts", HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
 
     /**
      * Adds a product to the cart.

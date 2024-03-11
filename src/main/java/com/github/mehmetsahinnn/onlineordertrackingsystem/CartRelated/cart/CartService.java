@@ -8,6 +8,8 @@ import com.github.mehmetsahinnn.onlineordertrackingsystem.product.ProductService
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+
 /**
  * The CartService class provides methods for managing the shopping cart.
  * It includes a method for adding a product to the cart.
@@ -33,6 +35,20 @@ public class CartService {
         this.cartItemRepository = cartItemRepository;
         this.customerService = customerService;
         this.productService = productService;
+    }
+
+    /**
+     * Retrieves all the carts from the database.
+     *
+     * @return a List of Cart objects representing all the carts found in the database.
+     * @throws RuntimeException if an error occurs while fetching the carts from the database.
+     */
+    public List<Cart> findAll() {
+        try {
+            return cartRepository.findAll();
+        } catch (Exception e) {
+            throw new RuntimeException("Error occurred while fetching carts", e);
+        }
     }
 
     /**
