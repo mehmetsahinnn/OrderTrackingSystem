@@ -58,6 +58,7 @@ The project is structured into several packages, each containing classes related
 
 - To add a product to the cart, send a POST request to `/api/cart/{productId}/{quantity}`.
 - To delete a shopping cart item with the specified ID, send a DELETE request to `/api/cartitem/{id}`.
+- To retrieve all carts, send a GET request to `/api/cart`
 - To delete a shopping cart with the specified ID, send a DELETE request to `/api/cart/{id}`.
 - If an error occurs during deletion of the shopping cart or its item, a 500 Internal Server Error response will be returned.
 
