@@ -1,5 +1,6 @@
 package com.github.mehmetsahinnn.onlineordertrackingsystem.CartRelated.cart;
 
+import com.github.mehmetsahinnn.onlineordertrackingsystem.config.ResponseHandler;
 import com.github.mehmetsahinnn.onlineordertrackingsystem.product.Product;
 import com.github.mehmetsahinnn.onlineordertrackingsystem.product.ProductService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -41,7 +42,7 @@ public class CartController {
     public ResponseEntity<?> listCarts() {
         try {
             List<Cart> carts = cartService.findAll();
-            return new ResponseEntity<>(carts, HttpStatus.OK);
+            return ResponseHandler.generateResponse("Carts", HttpStatus.OK, carts);
         } catch (Exception e) {
             return new ResponseEntity<>("An error occurred while retrieving carts", HttpStatus.INTERNAL_SERVER_ERROR);
         }

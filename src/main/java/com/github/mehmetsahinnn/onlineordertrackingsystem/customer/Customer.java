@@ -18,15 +18,15 @@ public class Customer {
     @Column(name = "id")
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    @Column(name = "name")
+    @Column(name = "name", nullable = false)
     private String name;
-    @Column(name = "surname")
+    @Column(name = "surname", nullable = false)
     private String surname;
-    @Column(name = "password")
+    @Column(name = "password", nullable = false)
     private String password;
     @Column(name = "email", unique = true)
     private String email;
     @Column(name = "isAdmin")
-    private boolean isAdmin;
+    private Boolean isAdmin;
 
 }

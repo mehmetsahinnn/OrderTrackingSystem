@@ -1,5 +1,6 @@
 package com.github.mehmetsahinnn.onlineordertrackingsystem.CartRelated.CartItem;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.github.mehmetsahinnn.onlineordertrackingsystem.CartRelated.cart.Cart;
 import com.github.mehmetsahinnn.onlineordertrackingsystem.product.Product;
 import lombok.*;
@@ -19,6 +20,7 @@ public class CartItem {
     private Long id;
 
     @ManyToOne
+    @JsonBackReference
     private Cart cart;
 
     @ManyToOne

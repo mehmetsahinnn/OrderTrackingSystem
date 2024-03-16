@@ -1,6 +1,9 @@
 package com.github.mehmetsahinnn.onlineordertrackingsystem.customer;
 
+import com.github.mehmetsahinnn.onlineordertrackingsystem.config.CustomerResponseHandler;
+import com.github.mehmetsahinnn.onlineordertrackingsystem.config.ResponseHandler;
 import com.github.mehmetsahinnn.onlineordertrackingsystem.security.PCrypt;
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -33,21 +36,23 @@ public class CustomerController {
     }
 
     /**
-     * Logs in a customer.
+     * Logs in a customer and returns a JWT token.
      *
      * @param customerLoginDetails the login details of the customer
-     * @return a ResponseEntity containing the customer details if login is successful, or an error message otherwise
+     * @return a ResponseEntity containing the JWT token if login is successful, or an error message otherwise
      */
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody Customer customerLoginDetails) {
         try {
             Customer customer = customerService.findByEmail(customerLoginDetails.getEmail());
             if (customer != null && crypt.passwordEncoder().matches(customerLoginDetails.getPassword(), customer.getPassword())) {
-                return new ResponseEntity<>(customer, HttpStatus.OK);
+                String token = customerService.tokenBuilder(customer);
+                return CustomerResponseHandler.generateResponse("Logged In", HttpStatus.OK, customer, token);
+
             }
-            return new ResponseEntity<>("Invalid email or password", HttpStatus.UNAUTHORIZED);
+            return ResponseHandler.generateResponse("Invalid email or password", HttpStatus.UNAUTHORIZED, null);
         } catch (Exception e) {
-            return new ResponseEntity<>("An error occurred while logging in", HttpStatus.INTERNAL_SERVER_ERROR);
+            return ResponseHandler.generateResponse("An error occurred while logging in", HttpStatus.INTERNAL_SERVER_ERROR, null);
         }
     }
 
@@ -64,9 +69,9 @@ public class CustomerController {
             customerService.registerNewCustomer(customer);
             return ResponseEntity.ok().build();
         } catch (RuntimeException e) {
-            return ResponseEntity.status(HttpStatus.CONFLICT).body("User Already Exists !");
+            return ResponseEntity.status(HttpStatus.CONFLICT).body(e.getMessage());
         } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("An error occurred while registering");
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"error\":\"Kullanıcı adı veya şifre hatalı!\"}");
         }
     }
 
@@ -82,6 +87,27 @@ public class CustomerController {
             return new ResponseEntity<>(customers, HttpStatus.OK);
         } catch (Exception e) {
             return new ResponseEntity<>("An error occurred while retrieving customers", HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    /**
+     * Updates a customer's details.
+     *
+     * @param id              the ID of the customer to update
+     * @param updatedCustomer the new details of the customer
+     * @param request         the HttpServletRequest containing the JWT token
+     * @return a ResponseEntity containing the updated customer details if update is successful, or an error message otherwise
+     */
+    @PutMapping("/customers/{id}")
+    public ResponseEntity<?> updateCustomer(@PathVariable Long id, @RequestBody Customer updatedCustomer, HttpServletRequest request) {
+        try {
+            String token = request.getHeader("Authorization").substring(7);
+            Customer customer = customerService.updateCustomerWithAuthorization(id, updatedCustomer, token);
+            return new ResponseEntity<>(customer, HttpStatus.OK);
+        } catch (RuntimeException e) {
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.UNAUTHORIZED);
+        } catch (Exception e) {
+            return new ResponseEntity<>("An error occurred while updating the customer", HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 

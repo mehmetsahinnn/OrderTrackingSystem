@@ -1,6 +1,6 @@
 package com.github.mehmetsahinnn.onlineordertrackingsystem.order;
 
-import com.github.mehmetsahinnn.onlineordertrackingsystem.product.ProductService;
+import com.github.mehmetsahinnn.onlineordertrackingsystem.config.ResponseHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -9,6 +9,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+
+
 
 /**
  * The OrderController class provides REST ful API endpoints for managing orders.
@@ -19,7 +21,6 @@ import java.util.List;
 public class OrderController {
 
     private final OrderService orderService;
-    private final ProductService productService;
     private static final Logger logger = LoggerFactory.getLogger(OrderController.class);
 
 
@@ -29,9 +30,8 @@ public class OrderController {
      * @param orderService the OrderService to be used by the OrderController
      */
     @Autowired
-    public OrderController(OrderService orderService, ProductService productService) {
+    public OrderController(OrderService orderService) {
         this.orderService = orderService;
-        this.productService = productService;
     }
 
     /**
@@ -73,11 +73,11 @@ public class OrderController {
      * @return a ResponseEntity containing the retrieved order and the HTTP status
      */
     @GetMapping("/track/{id}")
-    public ResponseEntity<Order> getOrderById(@PathVariable Long id) {
+    public ResponseEntity<Object> getOrderById(@PathVariable Long id) {
         try {
             Order order = orderService.getOrderById(id);
             if (order == null) {
-                return new ResponseEntity<>(null, HttpStatus.NOT_FOUND);
+                return ResponseHandler.generateResponse("Can't find the item", HttpStatus.NOT_FOUND, null);
             }
             return new ResponseEntity<>(order, HttpStatus.OK);
         } catch (Exception e) {
@@ -93,11 +93,11 @@ public class OrderController {
      * @return a ResponseEntity containing the updated order and the HTTP status
      */
     @PutMapping("/{id}")
-    public ResponseEntity<Order> updateOrder(@PathVariable Long id, @RequestBody Order newOrderData) {
+    public ResponseEntity<Object> updateOrder(@PathVariable Long id, @RequestBody Order newOrderData) {
         try {
             Order updatedOrder = orderService.updateOrder(id, newOrderData);
             if (updatedOrder == null) {
-                return new ResponseEntity<>(null, HttpStatus.NOT_FOUND);
+                return ResponseHandler.generateResponse("Can't find the item", HttpStatus.NOT_FOUND, null);
             }
             return new ResponseEntity<>(updatedOrder, HttpStatus.OK);
         } catch (Exception e) {

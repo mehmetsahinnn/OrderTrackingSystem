@@ -1,5 +1,6 @@
 package com.github.mehmetsahinnn.onlineordertrackingsystem.CartRelated.cart;
 
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import com.github.mehmetsahinnn.onlineordertrackingsystem.CartRelated.CartItem.CartItem;
 import com.github.mehmetsahinnn.onlineordertrackingsystem.customer.Customer;
 import jakarta.persistence.*;
@@ -22,5 +23,6 @@ public class Cart {
     private Customer customer;
 
     @OneToMany(mappedBy = "cart", cascade = CascadeType.ALL)
+    @JsonManagedReference
     private List<CartItem> items;
 }

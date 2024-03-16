@@ -111,7 +111,7 @@ public class OrderControllerTest {
 
         when(orderService.getOrderById(order.getId())).thenReturn(order);
 
-        ResponseEntity<Order> response = orderController.getOrderById(order.getId());
+        ResponseEntity<?> response = orderController.getOrderById(order.getId());
 
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertEquals(order, response.getBody());
@@ -140,7 +140,7 @@ public class OrderControllerTest {
         when(orderService.getOrderById(baseOrder.getId())).thenReturn(baseOrder);
         when(orderService.updateOrder(baseOrder.getId(), orderToBeUpdated)).thenReturn(updatedOrder);
 
-        ResponseEntity<Order> response = orderController.updateOrder(baseOrder.getId(), orderToBeUpdated);
+        ResponseEntity<Object> response = orderController.updateOrder(baseOrder.getId(), orderToBeUpdated);
 
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertEquals(updatedOrder, response.getBody());
