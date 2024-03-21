@@ -36,7 +36,7 @@ public class CartController {
      * Retrieves all the carts and returns them as a ResponseEntity.
      *
      * @return a ResponseEntity containing the list of carts if retrieval is successful,
-     *         or an error message with HTTP status 500 if an error occurs during retrieval.
+     * or an error message with HTTP status 500 if an error occurs during retrieval.
      */
     @GetMapping
     public ResponseEntity<?> listCarts() {
@@ -53,7 +53,7 @@ public class CartController {
      * Adds a product to the cart.
      *
      * @param productId the ID of the product to add to the cart
-     * @param quantity the quantity of the product to add to the cart
+     * @param quantity  the quantity of the product to add to the cart
      * @return a ResponseEntity containing the updated cart and the HTTP status
      */
     @PostMapping("/{productId}/{quantity}")
@@ -61,9 +61,9 @@ public class CartController {
         try {
             Product product = productService.getProductById(productId);
             Cart updatedCart = cartService.addToCart(product, quantity);
-            return new ResponseEntity<>(updatedCart, HttpStatus.OK);
+            return ResponseHandler.generateResponse("Item added to cart", HttpStatus.OK, updatedCart);
         } catch (Exception e) {
-            return new ResponseEntity<>(e, HttpStatus.INTERNAL_SERVER_ERROR);
+            return ResponseHandler.generateResponse("An error occurred while adding item to cart", HttpStatus.INTERNAL_SERVER_ERROR, null);
         }
     }
 
@@ -74,12 +74,12 @@ public class CartController {
      * @return HTTP response; HttpStatus.NO_CONTENT if the operation is successful, otherwise HttpStatus.INTERNAL_SERVER_ERROR
      */
     @DeleteMapping("/cart/{id}")
-    public ResponseEntity<?> deleteCart(@PathVariable Long id){
+    public ResponseEntity<?> deleteCart(@PathVariable Long id) {
         try {
             cartService.deleteCartById(id);
-            return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+            return ResponseHandler.generateResponse("Item deleted", HttpStatus.NO_CONTENT, null);
         } catch (Exception e) {
-            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+            return ResponseHandler.generateResponse("An error occurred while deleting an item", HttpStatus.INTERNAL_SERVER_ERROR, null);
         }
     }
 
@@ -99,5 +99,4 @@ public class CartController {
             return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
-
 }

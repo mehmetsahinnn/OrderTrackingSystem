@@ -88,7 +88,7 @@ public class CartService {
      */
     public void deleteCartItemById(Long id) {
         try {
-            cartRepository.deleteById(id);
+            cartItemRepository.deleteById(id);
         } catch (Exception e) {
             throw new RuntimeException("Error occurred while deleting the cart item with id: " + id, e);
         }

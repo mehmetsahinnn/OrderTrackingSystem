@@ -67,11 +67,11 @@ public class CustomerController {
     public ResponseEntity<?> registerUser(@RequestBody Customer customer) {
         try {
             customerService.registerNewCustomer(customer);
-            return ResponseEntity.ok().build();
+            return ResponseHandler.generateResponse("Registration successful", HttpStatus.OK, customer);
         } catch (RuntimeException e) {
-            return ResponseEntity.status(HttpStatus.CONFLICT).body(e.getMessage());
+            return ResponseHandler.generateResponse(e.getMessage(), HttpStatus.CONFLICT, null);
         } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"error\":\"Kullanıcı adı veya şifre hatalı!\"}");
+            return ResponseHandler.generateResponse("Kullanıcı adı veya şifre hatalı!", HttpStatus.INTERNAL_SERVER_ERROR, null);
         }
     }
 
