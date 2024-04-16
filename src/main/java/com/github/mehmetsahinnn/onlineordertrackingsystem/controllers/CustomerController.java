@@ -72,8 +72,6 @@ public class CustomerController {
             return ResponseHandler.generateResponse("Registration successful", HttpStatus.OK, customer);
         } catch (RuntimeException e) {
             return ResponseHandler.generateResponse(e.getMessage(), HttpStatus.CONFLICT, null);
-        } catch (Exception e) {
-            return ResponseHandler.generateResponse("Kullanıcı adı veya şifre hatalı!", HttpStatus.INTERNAL_SERVER_ERROR, null);
         }
     }
 
