@@ -30,9 +30,19 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/api/**",
                                 "/swagger-ui/**",
+                                "/webjars/**",
                                 "/swagger-ui.html",
+                                "/swagger-resources",
+                                "/swagger-resources/**",
+                                "/configuration/ui",
+                                "/configuration/security",
+                                "/v2/api-docs",
                                 "/v3/api-docs",
-                                "/** "
+                                "/v3/api-docs/**",
+                                "/** ",
+                                "/login",
+                                "/project/jira/update",
+                                "/leave"
                                 ).permitAll()
                         .anyRequest().permitAll()
                 );

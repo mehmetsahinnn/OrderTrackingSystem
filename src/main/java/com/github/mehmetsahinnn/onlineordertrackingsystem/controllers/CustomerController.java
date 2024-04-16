@@ -18,7 +18,7 @@ import java.util.List;
  * The CustomerController class provides RESTful API endpoints for managing customer-related actions.
  * It includes endpoints for login and registration.
  */
-@Controller
+@RestController
 @RequestMapping("/api")
 public class CustomerController {
 
