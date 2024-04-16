@@ -1,6 +1,6 @@
 package com.github.mehmetsahinnn.onlineordertrackingsystem.controllers;
 
-import com.github.mehmetsahinnn.onlineordertrackingsystem.models.Cart;
+import com.github.mehmetsahinnn.onlineordertrackingsystem.models.CartItem;
 import com.github.mehmetsahinnn.onlineordertrackingsystem.services.CartService;
 import com.github.mehmetsahinnn.onlineordertrackingsystem.config.ResponseHandler;
 import com.github.mehmetsahinnn.onlineordertrackingsystem.models.Product;
@@ -41,10 +41,10 @@ public class CartController {
      * or an error message with HTTP status 500 if an error occurs during retrieval.
      */
     @GetMapping
-    public ResponseEntity<?> listCarts() {
+    public ResponseEntity<?> listCartsItems() {
         try {
-            List<Cart> carts = cartService.findAll();
-            return ResponseHandler.generateResponse("Carts", HttpStatus.OK, carts);
+            List<CartItem> cartItems = cartService.findAllItems();
+            return ResponseHandler.generateResponse("Cart Items", HttpStatus.OK, cartItems);
         } catch (Exception e) {
             return new ResponseEntity<>("An error occurred while retrieving carts", HttpStatus.INTERNAL_SERVER_ERROR);
         }
@@ -62,26 +62,10 @@ public class CartController {
     public ResponseEntity<?> addToCart(@PathVariable Long productId, @PathVariable int quantity) {
         try {
             Product product = productService.getProductById(productId);
-            Cart updatedCart = cartService.addToCart(product, quantity);
+            CartItem updatedCart = cartService.addToCart(product, quantity);
             return ResponseHandler.generateResponse("Item added to cart", HttpStatus.OK, updatedCart);
         } catch (Exception e) {
             return ResponseHandler.generateResponse("An error occurred while adding item to cart", HttpStatus.INTERNAL_SERVER_ERROR, null);
-        }
-    }
-
-    /**
-     * Deletes a shopping cart with the specified ID.
-     *
-     * @param id The ID of the shopping cart to be deleted
-     * @return HTTP response; HttpStatus.NO_CONTENT if the operation is successful, otherwise HttpStatus.INTERNAL_SERVER_ERROR
-     */
-    @DeleteMapping("/cart/{id}")
-    public ResponseEntity<?> deleteCart(@PathVariable Long id) {
-        try {
-            cartService.deleteCartById(id);
-            return ResponseHandler.generateResponse("Item deleted", HttpStatus.NO_CONTENT, null);
-        } catch (Exception e) {
-            return ResponseHandler.generateResponse("An error occurred while deleting an item", HttpStatus.INTERNAL_SERVER_ERROR, null);
         }
     }
 

@@ -27,6 +27,6 @@ public class Customer {
     @Column(name = "email", unique = true)
     private String email;
     @Column(name = "isAdmin")
-    private Boolean isAdmin;
+    private Integer isAdmin;
 
 }

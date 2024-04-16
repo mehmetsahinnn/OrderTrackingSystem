@@ -1,9 +1,8 @@
 package com.github.mehmetsahinnn.onlineordertrackingsystem.services;
 
 import com.github.mehmetsahinnn.onlineordertrackingsystem.models.CartItem;
+import com.github.mehmetsahinnn.onlineordertrackingsystem.models.Customer;
 import com.github.mehmetsahinnn.onlineordertrackingsystem.repositories.CartItemRepository;
-import com.github.mehmetsahinnn.onlineordertrackingsystem.models.Cart;
-import com.github.mehmetsahinnn.onlineordertrackingsystem.repositories.CartRepository;
 import com.github.mehmetsahinnn.onlineordertrackingsystem.models.Product;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -16,7 +15,7 @@ import java.util.List;
  */
 @Service
 public class CartService {
-    private final CartRepository cartRepository;
+
     private final CartItemRepository cartItemRepository;
     private final CustomerService customerService;
     private final ProductService productService;
@@ -24,32 +23,20 @@ public class CartService {
     /**
      * Constructs a new CartService with the specified CartRepository, CartItemRepository, CustomerService, and ProductService.
      *
-     * @param cartRepository     the CartRepository to be used by the CartService
      * @param cartItemRepository the CartItemRepository to be used by the CartService
      * @param customerService    the CustomerService to be used by the CartService
      * @param productService     the ProductService to be used by the CartService
      */
     @Autowired
-    public CartService(CartRepository cartRepository, CartItemRepository cartItemRepository, CustomerService customerService, ProductService productService) {
-        this.cartRepository = cartRepository;
+    public CartService( CartItemRepository cartItemRepository, CustomerService customerService, ProductService productService) {
+
         this.cartItemRepository = cartItemRepository;
         this.customerService = customerService;
         this.productService = productService;
     }
 
-    /**
-     * Retrieves all the carts from the database.
-     *
-     * @return a List of Cart objects representing all the carts found in the database.
-     * @throws RuntimeException if an error occurs while fetching the carts from the database.
-     */
-    public List<Cart> findAll() {
-        try {
-            return cartRepository.findAll();
-        } catch (Exception e) {
-            throw new RuntimeException("Error occurred while fetching carts", e);
-        }
-    }
+
+
 
     /**
      * Adds a product to the cart.
@@ -58,27 +45,14 @@ public class CartService {
      * @param quantity the quantity of the product to add to the cart
      * @return the updated cart
      */
-    public Cart addToCart(Product product, int quantity) {
+    public CartItem addToCart(Product product, int quantity) {
         checkStock(product, quantity);
-        Cart currentCart = cartRepository.findCartByCustomer(customerService.getCurrentUser());
-        CartItem cartItem = updateCartWithProduct(product, currentCart, quantity);
+        Customer currentCustomer = customerService.getCurrentUser();
+        CartItem cartItem = updateCartWithProduct(product, currentCustomer, quantity);
         cartItemRepository.save(cartItem);
-        return cartRepository.findCartByCustomer(customerService.getCurrentUser());
+        return cartItem;
     }
 
-    /**
-     * Deletes a cart with the specified ID.
-     *
-     * @param id the ID of the cart to be deleted
-     * @throws RuntimeException if an error occurs while deleting the cart
-     */
-    public void deleteCartById(Long id) {
-        try {
-            cartRepository.deleteById(id);
-        } catch (Exception e) {
-            throw new RuntimeException("Error occurred while deleting the cart with id: " + id, e);
-        }
-    }
 
     /**
      * Deletes a cart item with the specified ID.
@@ -94,7 +68,6 @@ public class CartService {
         }
     }
 
-
     private void checkStock(Product product, int quantity) {
         if (product.getNumberInStock() < quantity) {
             throw new RuntimeException("Product is out of stock");
@@ -103,13 +76,17 @@ public class CartService {
         productService.saveProduct(product);
     }
 
-    private CartItem updateCartWithProduct(Product product, Cart currentCart, int quantity) {
-        CartItem cartItem = cartItemRepository.findByProductAndCart(product, currentCart);
+    private CartItem updateCartWithProduct(Product product, Customer currentCustomer, int quantity) {
+        CartItem cartItem = cartItemRepository.findByProductAndCustomer(product, currentCustomer);
         if (cartItem != null) {
             cartItem.setQuantity(cartItem.getQuantity() + quantity);
         } else {
-            cartItem = new CartItem(null, currentCart, product, quantity);
+            cartItem = new CartItem(null, currentCustomer, product, quantity);
         }
         return cartItem;
+    }
+
+    public List<CartItem> findAllItems() {
+        return cartItemRepository.findAll();
     }
 }

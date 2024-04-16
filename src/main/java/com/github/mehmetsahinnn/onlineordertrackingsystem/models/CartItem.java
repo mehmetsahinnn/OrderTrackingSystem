@@ -10,7 +10,7 @@ import jakarta.persistence.*;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-@Table(name = "orderitem")
+@Table(name = "cartitem")
 public class CartItem {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -19,7 +19,7 @@ public class CartItem {
 
     @ManyToOne
     @JsonBackReference
-    private Cart cart;
+    private Customer cart;
 
     @ManyToOne
     @JoinColumn(name = "product_id", nullable = false, unique = true)

@@ -1,7 +1,5 @@
 package com.github.mehmetsahinnn.onlineordertrackingsystem.services;
 
-import com.github.mehmetsahinnn.onlineordertrackingsystem.models.Cart;
-import com.github.mehmetsahinnn.onlineordertrackingsystem.repositories.CartRepository;
 import com.github.mehmetsahinnn.onlineordertrackingsystem.models.CartItem;
 import com.github.mehmetsahinnn.onlineordertrackingsystem.repositories.CartItemRepository;
 import com.github.mehmetsahinnn.onlineordertrackingsystem.models.Product;
@@ -23,8 +21,6 @@ public class CartServiceTest {
     @InjectMocks
     private CartService cartService;
 
-    @Mock
-    private CartRepository cartRepository;
 
     @Mock
     private CartItemRepository cartItemRepository;
@@ -54,14 +50,13 @@ public class CartServiceTest {
         product.setName("Product 1");
         product.setNumberInStock(10);
 
-        Cart cart = new Cart();
+        CartItem cartItem = new CartItem();
         when(customerService.getCurrentUser()).thenReturn(null);
-        when(cartRepository.findCartByCustomer(null)).thenReturn(cart);
-        when(cartItemRepository.findByProductAndCart(product, cart)).thenReturn(null);
+        when(cartItemRepository.findByProductAndCustomer(product, null)).thenReturn(null);
 
-        Cart result = cartService.addToCart(product, 1);
+        CartItem result = cartService.addToCart(product, 1);
 
-        assertEquals(cart, result);
+        assertEquals(cartItem, result);
         verify(productService, times(1)).saveProduct(product);
         verify(cartItemRepository, times(1)).save(any(CartItem.class));
     }
@@ -74,24 +69,11 @@ public class CartServiceTest {
     public void testDeleteCartItemById() {
         Long cartItemId = 1L;
 
-        doNothing().when(cartRepository).deleteById(cartItemId);
+        doNothing().when(cartItemRepository).deleteById(cartItemId);
 
         cartService.deleteCartItemById(cartItemId);
 
-        verify(cartRepository, times(1)).deleteById(cartItemId);
+        verify(cartItemRepository, times(1)).deleteById(cartItemId);
     }
-    /**
-     * Tests the {@link CartService#deleteCartById(Long)} method to ensure that it correctly deletes a cart
-     * with the specified ID.
-     */
-    @Test
-    public void testDeleteCartById() {
-        Long cartId = 1L;
 
-        doNothing().when(cartRepository).deleteById(cartId);
-
-        cartService.deleteCartById(cartId);
-
-        verify(cartRepository, times(1)).deleteById(cartId);
-    }
 }
