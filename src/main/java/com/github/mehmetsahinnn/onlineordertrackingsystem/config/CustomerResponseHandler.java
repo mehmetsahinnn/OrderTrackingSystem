@@ -1,6 +1,6 @@
 package com.github.mehmetsahinnn.onlineordertrackingsystem.config;
 
-import com.github.mehmetsahinnn.onlineordertrackingsystem.customer.Customer;
+import com.github.mehmetsahinnn.onlineordertrackingsystem.models.Customer;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
