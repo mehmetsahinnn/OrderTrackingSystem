@@ -1,15 +1,20 @@
 package com.github.mehmetsahinnn.onlineordertrackingsystem.services;
 
+import com.github.mehmetsahinnn.onlineordertrackingsystem.config.ResponseHandler;
 import com.github.mehmetsahinnn.onlineordertrackingsystem.models.Order;
+import com.github.mehmetsahinnn.onlineordertrackingsystem.models.OrderItem;
 import com.github.mehmetsahinnn.onlineordertrackingsystem.repositories.OrderRepository;
 import com.github.mehmetsahinnn.onlineordertrackingsystem.enums.OrderStatus;
 import com.github.mehmetsahinnn.onlineordertrackingsystem.models.Product;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.NoSuchElementException;
 
 /**
  * The OrderService class provides services for managing orders.
@@ -43,18 +48,25 @@ public class OrderService {
      * @return the placed order
      * @throws IllegalArgumentException if the product's stock is insufficient or not available
      */
-    public Order placeOrder(Order order) {
-        Product product = order.getProduct();
-        Integer numberInStock = product.getNumberInStock();
+    public ResponseEntity<Object> placeOrder(Order order) {
+        try {
+            for (OrderItem orderItem : order.getOrderItems()) {
+                Product product = orderItem.getProduct();
+                Integer numberInStock = product.getNumberInStock();
 
-        if (numberInStock == null || order.getQuantity() > numberInStock){
-            logger.error("Error occurred while placing the order: Insufficient stock or stock information not available.");
-            throw new IllegalArgumentException("Insufficient stock or stock information not available.");
+                if (numberInStock == null || orderItem.getQuantity() > numberInStock){
+                    logger.error("Error occurred while placing the order: Insufficient stock or stock information not available for product id: {}", product.getId());
+                    throw new IllegalArgumentException("Insufficient stock or stock information not available for product id: " + product.getId());
+                }
+
+                productService.updateStock(product.getId(), numberInStock - orderItem.getQuantity());
+            }
+            order.setStatus(OrderStatus.CONFIRMED);
+            Order savedOrder = orderRepository.save(order);
+            return ResponseHandler.generateResponse("Order placed successfully.", HttpStatus.CREATED, savedOrder);
+        } catch (IllegalArgumentException ex) {
+            return ResponseHandler.generateResponse(ex.getMessage(), HttpStatus.BAD_REQUEST, null);
         }
-
-        productService.updateStock(product.getId(), numberInStock - order.getQuantity());
-        order.setStatus(OrderStatus.CONFIRMED);
-        return orderRepository.save(order);
     }
     /**
      * Retrieves an order by its ID.
@@ -103,21 +115,20 @@ public class OrderService {
      * @param newOrderData the new order data
      * @return the updated order
      */
-    public Order updateOrder(Long id, Order newOrderData) {
+    public ResponseEntity<Object> updateOrder(Long id, Order newOrderData) {
         try {
-            Order existingOrder = orderRepository.findById(id).orElse(null);
-            if (existingOrder != null) {
-                existingOrder.setProduct(newOrderData.getProduct());
-                existingOrder.setQuantity(newOrderData.getQuantity());
+            Order existingOrder = orderRepository.findById(id)
+                    .orElseThrow(() -> new NoSuchElementException("No Order found with id: " + id));
 
-                OrderStatus newStatus = getOrderStatus(newOrderData, existingOrder);
+            existingOrder.setOrderItems(newOrderData.getOrderItems());
 
-                existingOrder.setStatus(newStatus);
-                orderRepository.save(existingOrder);
-            }
-            return existingOrder;
-        } catch (Exception e) {
-            throw new RuntimeException("Error occurred while updating the order with id: " + id, e);
+            OrderStatus newStatus = getOrderStatus(newOrderData, existingOrder);
+
+            existingOrder.setStatus(newStatus);
+            Order updatedOrder = orderRepository.save(existingOrder);
+            return ResponseHandler.generateResponse("Order updated successfully.", HttpStatus.OK, updatedOrder);
+        } catch (NoSuchElementException ex) {
+            return ResponseHandler.generateResponse(ex.getMessage(), HttpStatus.NOT_FOUND, null);
         }
     }
 
@@ -143,17 +154,26 @@ public class OrderService {
      * @throws RuntimeException if no order is found with the given order ID
      */
     public void cancelOrderAndIncreaseStock(Long orderId) {
-        Order order = getOrderById(orderId);
-        if (order == null) {
-            throw new RuntimeException("Order not found with id: " + orderId);
+        try {
+            Order order = getOrderById(orderId);
+            if (order == null) {
+                ResponseHandler.generateResponse("Order not found with id: " + orderId, HttpStatus.NOT_FOUND, null);
+                return;
+            }
+
+            order.setStatus(OrderStatus.CANCELLED);
+
+            for (OrderItem orderItem : order.getOrderItems()) {
+                Product product = orderItem.getProduct();
+                Integer currentStock = product.getNumberInStock();
+                product.setNumberInStock(currentStock + orderItem.getQuantity());
+
+                productService.updateProduct(product.getId(), product);
+            }
+
+            ResponseHandler.generateResponse("Order cancelled and stock increased successfully.", HttpStatus.OK, null);
+        } catch (Exception e) {
+            ResponseHandler.generateResponse("Error occurred while cancelling the order and increasing the stock.", HttpStatus.INTERNAL_SERVER_ERROR, null);
         }
-
-        order.setStatus(OrderStatus.CANCELLED);
-
-        Product product = order.getProduct();
-        Integer currentStock = product.getNumberInStock();
-        product.setNumberInStock(currentStock + order.getQuantity());
-
-        productService.updateProduct(product.getId(), product);
     }
 }

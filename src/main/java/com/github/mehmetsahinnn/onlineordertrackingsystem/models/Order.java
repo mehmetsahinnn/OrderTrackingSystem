@@ -1,5 +1,6 @@
 package com.github.mehmetsahinnn.onlineordertrackingsystem.models;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.github.mehmetsahinnn.onlineordertrackingsystem.enums.OrderStatus;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -10,6 +11,7 @@ import org.springframework.data.annotation.CreatedDate;
 
 import java.time.LocalDate;
 import java.util.Date;
+import java.util.List;
 
 @Entity
 @Getter
@@ -24,24 +26,23 @@ public class Order {
     private Long id;
 
     @ManyToOne
-    @JoinColumn(name = "customerId")
+    @JoinColumn(name = "customerid")
     private Customer customer;
-    @ManyToOne
-    @JoinColumn(name = "productId")
-    private Product product;
-    @Column(name = "quantity")
-    private Integer quantity;
+
+    @OneToMany(mappedBy = "order")
+    @JsonBackReference
+    private List<OrderItem> orderItems;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "status")
     private OrderStatus status;
 
-    @Column(name = "orderDate")
+    @Column(name = "orderdate")
     @Temporal(TemporalType.TIMESTAMP)
     @CreatedDate
     private Date orderDate;
 
-    @Column(name = "estimatedDeliveryDate")
+    @Column(name = "estimateddeliverydate")
     private LocalDate estimatedDeliveryDate;
 
 }
