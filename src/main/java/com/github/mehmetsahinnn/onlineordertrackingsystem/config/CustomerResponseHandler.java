@@ -18,7 +18,7 @@ public class CustomerResponseHandler {
         data.put("name", customer.getName());
         data.put("surname", customer.getSurname());
         data.put("email", customer.getEmail());
-        data.put("isAdmin", customer.getIsAdmin());
+        data.put("isAdmin", customer.getStatus());
         map.put("data", data);
 
         return new ResponseEntity<>(map, status);
