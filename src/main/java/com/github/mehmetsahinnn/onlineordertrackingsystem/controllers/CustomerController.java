@@ -1,5 +1,6 @@
 package com.github.mehmetsahinnn.onlineordertrackingsystem.controllers;
 
+import com.github.mehmetsahinnn.onlineordertrackingsystem.config.KeycloakClient;
 import com.github.mehmetsahinnn.onlineordertrackingsystem.services.CustomerService;
 import com.github.mehmetsahinnn.onlineordertrackingsystem.config.CustomerResponseHandler;
 import com.github.mehmetsahinnn.onlineordertrackingsystem.config.ResponseHandler;
@@ -9,7 +10,6 @@ import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -24,6 +24,7 @@ public class CustomerController {
 
     private final CustomerService customerService;
     private final PCrypt crypt;
+    private final KeycloakClient keycloakClient;
 
     /**
      * Constructs a new CustomerController with the specified CustomerService and PCrypt.
@@ -32,9 +33,10 @@ public class CustomerController {
      * @param crypt           the PCrypt to be used by the CustomerController
      */
     @Autowired
-    public CustomerController(CustomerService customerService, PCrypt crypt) {
+    public CustomerController(CustomerService customerService, PCrypt crypt,  KeycloakClient keycloakClient) {
         this.customerService = customerService;
         this.crypt = crypt;
+        this.keycloakClient = keycloakClient;
     }
 
     /**
@@ -48,9 +50,12 @@ public class CustomerController {
         try {
             Customer customer = customerService.findByEmail(customerLoginDetails.getEmail());
             if (customer != null && crypt.passwordEncoder().matches(customerLoginDetails.getPassword(), customer.getPassword())) {
-                String token = customerService.tokenBuilder(customer);
-                return CustomerResponseHandler.generateResponse("Logged In", HttpStatus.OK, customer, token);
-
+                try {
+                    String token = keycloakClient.getLoginToken(customer.getEmail(), customer.getPassword());
+                    return CustomerResponseHandler.generateResponse("Logged In", HttpStatus.OK, customer, token);
+                } catch (Exception e) {
+                    return ResponseHandler.generateResponse("An error occurred while retrieving the login token", HttpStatus.INTERNAL_SERVER_ERROR, null);
+                }
             }
             return ResponseHandler.generateResponse("Invalid email or password", HttpStatus.UNAUTHORIZED, null);
         } catch (Exception e) {
@@ -69,12 +74,13 @@ public class CustomerController {
     public ResponseEntity<?> registerUser(@RequestBody Customer customer) {
         try {
             customerService.registerNewCustomer(customer);
-            return ResponseHandler.generateResponse("Registration successful", HttpStatus.OK, customer);
+            keycloakClient.createUser(customer.getEmail(), customer.getPassword(), customer.getName(), customer.getSurname());
+            String token = keycloakClient.getLoginToken(customer.getEmail(), customer.getPassword());
+            return ResponseHandler.generateResponse("Registration successful", HttpStatus.OK, token);
         } catch (RuntimeException e) {
             return ResponseHandler.generateResponse(e.getMessage(), HttpStatus.CONFLICT, null);
         }
     }
-
     /**
      * Retrieves a list of all customers.
      *

@@ -13,7 +13,6 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 
-
 /**
  * The OrderController class provides REST ful API endpoints for managing orders.
  * It includes endpoints for placing, retrieving, updating, and deleting orders.
@@ -43,12 +42,11 @@ public class OrderController {
      * @return a ResponseEntity containing the placed order and the HTTP status
      */
     @PostMapping
-    public ResponseEntity<Order> placeOrder(@RequestBody Order order) {
+    public ResponseEntity<Object> placeOrder(@RequestBody Order order) {
         try {
-            Order placedOrder = orderService.placeOrder(order);
-            return new ResponseEntity<>(placedOrder, HttpStatus.CREATED);
+            return orderService.placeOrder(order);
         } catch (Exception e) {
-            return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
+            throw new RuntimeException(e);
         }
     }
 
@@ -90,22 +88,19 @@ public class OrderController {
     /**
      * Updates an order.
      *
-     * @param id the ID of the order to update
+     * @param id           the ID of the order to update
      * @param newOrderData the new order data
      * @return a ResponseEntity containing the updated order and the HTTP status
      */
     @PutMapping("/{id}")
     public ResponseEntity<Object> updateOrder(@PathVariable Long id, @RequestBody Order newOrderData) {
         try {
-            Order updatedOrder = orderService.updateOrder(id, newOrderData);
-            if (updatedOrder == null) {
-                return ResponseHandler.generateResponse("Can't find the item", HttpStatus.NOT_FOUND, null);
-            }
-            return new ResponseEntity<>(updatedOrder, HttpStatus.OK);
+            return orderService.updateOrder(id, newOrderData);
         } catch (Exception e) {
-            return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
+            throw new RuntimeException(e.getMessage());
         }
     }
+
     /**
      * Cancels an order by its ID and increases the product stock by the quantity of the order.
      *
@@ -119,8 +114,6 @@ public class OrderController {
             return new ResponseEntity<>(HttpStatus.NO_CONTENT);
         } catch (RuntimeException e) {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-        } catch (Exception e) {
-            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 

@@ -25,7 +25,7 @@ public class Product {
     private String category;
     @Column(name = "price")
     private Double price;
-    @Column(name = "numberInStock", nullable = false)
+    @Column(name = "numberinstock", nullable = false)
     private Integer numberInStock;
 
 }

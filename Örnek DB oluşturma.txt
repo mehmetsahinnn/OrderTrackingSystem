@@ -1,0 +1,94 @@
+CREATE TABLE Customer (
+    id SERIAL PRIMARY KEY,
+    name VARCHAR(255),
+    surname VARCHAR(255),
+    password VARCHAR(255),
+    email VARCHAR(255),
+    isadmin BOOLEAN
+);
+
+CREATE TABLE Cart (
+    id SERIAL PRIMARY KEY,
+    customer_id INT REFERENCES Customer(id)
+);
+
+CREATE TABLE CartItem (
+    id SERIAL PRIMARY KEY,
+    cart_id INT REFERENCES Cart(id),
+    product_id INT,
+    quantity INT
+);
+
+CREATE TABLE Product (
+    id SERIAL PRIMARY KEY,
+    name VARCHAR(255),
+    description TEXT,
+    price DECIMAL(10, 2),
+    numberinstock INT,
+    category VARCHAR(255)
+);
+
+CREATE TABLE Order (
+    id SERIAL PRIMARY KEY,
+    customerid INT REFERENCES Customer(id),
+    productid INT REFERENCES Product(id),
+    quantity INT,
+    status VARCHAR(255),
+    orderdate TIMESTAMP,
+    estimateddeliverydate DATE
+);
+
+-- Insert data into Customer table
+INSERT INTO Customer (id, name, surname, password, email, isadmin)
+VALUES
+    (1, 'John', 'Doe', 'password1', 'john.doe@example.com', false),
+    (2, 'Jane', 'Doe', 'password2', 'jane.doe@example.com', false),
+    (3, 'Alice', 'Smith', 'password3', 'alice.smith@example.com', false),
+    (4, 'Bob', 'Johnson', 'password4', 'bob.johnson@example.com', false),
+    (5, 'Charlie', 'Brown', 'password5', 'charlie.brown@example.com', false);
+
+-- Insert data into Cart table
+INSERT INTO Cart (id, customer_id)
+VALUES
+    (1, 1),
+    (2, 2),
+    (3, 3),
+    (4, 4),
+    (5, 5);
+
+-- Insert data into CartItem table
+INSERT INTO CartItem (id, cart_id, product_id, quantity)
+VALUES
+    (2, 1, 1, 2),
+    (3, 1, 2, 1),
+    (4, 2, 3, 1),
+    (5, 3, 1, 3);
+
+-- Insert data into Product table
+INSERT INTO Product (id, name, description, price, numberinstock, category)
+VALUES
+    (1, 'Product 1', 'This is product 1', 19.99, 22, 'Category 1'),
+    (2, 'Product 2', 'This is product 2', 29.99, 29, 'Category 3'),
+    (3, 'Product 3', 'This is product 3', 39.99, 25, 'Category 1'),
+    (4, 'Product 4', 'This is product 4', 49.99, 23, 'Category 3'),
+    (5, 'Product 5', 'This is product 5', 59.99, 31, 'Category 3'),
+    (6, 'Product 6', 'This is product 6', 60.99, 26, 'Category 1'),
+    (7, 'Product 7', 'This is product 7', 70.99, 17, 'Category 2'),
+    (8, 'Product 8', 'This is product 8', 80.99, 38, 'Category 3'),
+    (9, 'Product 9', 'This is product 9', 19.99, 19, 'Category 1'),
+    (10, 'Product 10', 'This is product 10', 119.99, 26, 'Category 10');
+
+-- Insert data into Orders table
+INSERT INTO Orders (id, customerid, productid, quantity, status, orderdate, estimateddeliverydate)
+VALUES
+    (1, 1, 2, 1, 'SHIPPED', '2022-02-01 00:00:00.000000', '2022-02-01'),
+    (2, 2, 1, 3, 'DELIVERED', '2022-03-01 00:00:00.000000', '2022-04-01'),
+    (3, 2, 3, 1, 'CANCELLED', '2022-04-01 00:00:00.000000', '2022-05-01'),
+    (4, 3, 2, 2, 'CANCELLED', '2022-05-01 00:00:00.000000', '2022-06-01'),
+    (5, 3, 3, 4, 'CONFIRMED', '2024-03-15 13:30:00.000000', '2025-05-01'),
+    (6, 3, 3, 4, 'CONFIRMED', '2024-03-15 13:30:00.000000', '2025-05-01'),
+    (7, 3, 3, 4, 'CONFIRMED', '2024-03-15 13:30:00.000000', '2025-05-01'),
+    (8, 3, 3, 4, 'DELIVERED', '2024-03-15 13:30:00.000000', '2025-05-01'),
+    (9, 1, 1, 4, 'CONFIRMED', '2024-03-15 13:30:00.000000', '2025-05-01');
+
+
