@@ -68,7 +68,7 @@ public class ProductService {
         try {
             return productRepository.findById(id).orElse(null);
         } catch (Exception e) {
-            logger.error("Error occurred while retrieving the product with id: " + id, e);
+            logger.error("Error occurred while retrieving the product with id: {}", id, e);
             throw new RuntimeException("Error occurred while retrieving the product with id: " + id, e);
         }
     }

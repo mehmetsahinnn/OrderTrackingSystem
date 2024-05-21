@@ -1,20 +1,27 @@
 package com.github.mehmetsahinnn.onlineordertrackingsystem.services;
 
+import com.github.mehmetsahinnn.onlineordertrackingsystem.config.KeycloakClient;
 import com.github.mehmetsahinnn.onlineordertrackingsystem.config.ResponseHandler;
+import com.github.mehmetsahinnn.onlineordertrackingsystem.elasticdocuments.OrderDocument;
 import com.github.mehmetsahinnn.onlineordertrackingsystem.models.Order;
 import com.github.mehmetsahinnn.onlineordertrackingsystem.models.OrderItem;
+import com.github.mehmetsahinnn.onlineordertrackingsystem.elasticrepos.OrderDocumentRepository;
 import com.github.mehmetsahinnn.onlineordertrackingsystem.repositories.OrderRepository;
 import com.github.mehmetsahinnn.onlineordertrackingsystem.enums.OrderStatus;
 import com.github.mehmetsahinnn.onlineordertrackingsystem.models.Product;
+import org.elasticsearch.ResourceNotFoundException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.NoSuchElementException;
+import java.util.Optional;
 
 /**
  * The OrderService class provides services for managing orders.
@@ -25,18 +32,20 @@ public class OrderService {
     private final OrderRepository orderRepository;
     private final ProductService productService;
     private static final Logger logger = LoggerFactory.getLogger(OrderService.class);
+    private final KeycloakClient keycloakClient;
 
 
     /**
      * Constructs a new OrderService with the specified OrderRepository and ProductService.
      *
      * @param orderRepository the OrderRepository to be used by the OrderService
-     * @param productService the ProductService to be used by the OrderService
+     * @param productService  the ProductService to be used by the OrderService
      */
     @Autowired
-    public OrderService(OrderRepository orderRepository, ProductService productService) {
+    public OrderService(OrderRepository orderRepository, ProductService productService, KeycloakClient keycloakClient) {
         this.orderRepository = orderRepository;
         this.productService = productService;
+        this.keycloakClient = keycloakClient;
     }
 
     /**
@@ -48,26 +57,33 @@ public class OrderService {
      * @return the placed order
      * @throws IllegalArgumentException if the product's stock is insufficient or not available
      */
+    @PreAuthorize("hasRole('USER') or hasRole('ADMIN')")
     public ResponseEntity<Object> placeOrder(Order order) {
         try {
-            for (OrderItem orderItem : order.getOrderItems()) {
-                Product product = orderItem.getProduct();
-                Integer numberInStock = product.getNumberInStock();
+            order.getOrderItems().forEach(this::validateAndUpdateStock);
 
-                if (numberInStock == null || orderItem.getQuantity() > numberInStock){
-                    logger.error("Error occurred while placing the order: Insufficient stock or stock information not available for product id: {}", product.getId());
-                    throw new IllegalArgumentException("Insufficient stock or stock information not available for product id: " + product.getId());
-                }
-
-                productService.updateStock(product.getId(), numberInStock - orderItem.getQuantity());
-            }
             order.setStatus(OrderStatus.CONFIRMED);
             Order savedOrder = orderRepository.save(order);
+
             return ResponseHandler.generateResponse("Order placed successfully.", HttpStatus.CREATED, savedOrder);
-        } catch (IllegalArgumentException ex) {
+        } catch (RuntimeException ex) {
             return ResponseHandler.generateResponse(ex.getMessage(), HttpStatus.BAD_REQUEST, null);
         }
     }
+
+
+    private void validateAndUpdateStock(OrderItem orderItem) {
+        Product product = orderItem.getProduct();
+        int numberInStock = Optional.ofNullable(product.getNumberInStock()).orElse(0);
+
+        if (orderItem.getQuantity() > numberInStock) {
+            logger.error("Error occurred while placing the order: Insufficient stock for product id: {}", product.getId());
+            throw new RuntimeException("Insufficient stock for product id: " + product.getId());
+        }
+
+        productService.updateStock(product.getId(), numberInStock - orderItem.getQuantity());
+    }
+
     /**
      * Retrieves an order by its ID.
      *
@@ -111,7 +127,7 @@ public class OrderService {
     /**
      * Updates an order.
      *
-     * @param id the ID of the order to update
+     * @param id           the ID of the order to update
      * @param newOrderData the new order data
      * @return the updated order
      */
@@ -176,4 +192,6 @@ public class OrderService {
             ResponseHandler.generateResponse("Error occurred while cancelling the order and increasing the stock.", HttpStatus.INTERNAL_SERVER_ERROR, null);
         }
     }
+
+
 }

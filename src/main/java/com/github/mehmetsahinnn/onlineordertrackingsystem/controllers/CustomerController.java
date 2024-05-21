@@ -1,5 +1,6 @@
 package com.github.mehmetsahinnn.onlineordertrackingsystem.controllers;
-
+//
+//import com.github.mehmetsahinnn.onlineordertrackingsystem.annotations.Authentication;
 import com.github.mehmetsahinnn.onlineordertrackingsystem.config.KeycloakClient;
 import com.github.mehmetsahinnn.onlineordertrackingsystem.services.CustomerService;
 import com.github.mehmetsahinnn.onlineordertrackingsystem.config.CustomerResponseHandler;
@@ -7,6 +8,9 @@ import com.github.mehmetsahinnn.onlineordertrackingsystem.config.ResponseHandler
 import com.github.mehmetsahinnn.onlineordertrackingsystem.models.Customer;
 import com.github.mehmetsahinnn.onlineordertrackingsystem.security.PCrypt;
 import jakarta.servlet.http.HttpServletRequest;
+import lombok.extern.log4j.Log4j2;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -14,17 +18,20 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
+
 /**
  * The CustomerController class provides RESTful API endpoints for managing customer-related actions.
  * It includes endpoints for login and registration.
  */
 @RestController
 @RequestMapping("/api")
-public class CustomerController {
+@Log4j2
+public class CustomerController extends BaseController{
 
     private final CustomerService customerService;
     private final PCrypt crypt;
     private final KeycloakClient keycloakClient;
+
 
     /**
      * Constructs a new CustomerController with the specified CustomerService and PCrypt.
@@ -45,22 +52,18 @@ public class CustomerController {
      * @param customerLoginDetails the login details of the customer
      * @return a ResponseEntity containing the JWT token if login is successful, or an error message otherwise
      */
+
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody Customer customerLoginDetails) {
-        try {
+        return handleRequest(() -> {
             Customer customer = customerService.findByEmail(customerLoginDetails.getEmail());
             if (customer != null && crypt.passwordEncoder().matches(customerLoginDetails.getPassword(), customer.getPassword())) {
-                try {
-                    String token = keycloakClient.getLoginToken(customer.getEmail(), customer.getPassword());
-                    return CustomerResponseHandler.generateResponse("Logged In", HttpStatus.OK, customer, token);
-                } catch (Exception e) {
-                    return ResponseHandler.generateResponse("An error occurred while retrieving the login token", HttpStatus.INTERNAL_SERVER_ERROR, null);
-                }
+                String token = keycloakClient.getLoginToken(customer.getEmail(), customer.getPassword());
+                return CustomerResponseHandler.generateResponse("Logged In", HttpStatus.OK, customer, token);
+            } else {
+                return ResponseHandler.generateResponse("Invalid email or password", HttpStatus.UNAUTHORIZED, null);
             }
-            return ResponseHandler.generateResponse("Invalid email or password", HttpStatus.UNAUTHORIZED, null);
-        } catch (Exception e) {
-            return ResponseHandler.generateResponse("An error occurred while logging in", HttpStatus.INTERNAL_SERVER_ERROR, null);
-        }
+        }, "login");
     }
 
     /**
@@ -72,14 +75,12 @@ public class CustomerController {
      */
     @PostMapping("/register")
     public ResponseEntity<?> registerUser(@RequestBody Customer customer) {
-        try {
+        return handleRequest(() -> {
             customerService.registerNewCustomer(customer);
             keycloakClient.createUser(customer.getEmail(), customer.getPassword(), customer.getName(), customer.getSurname());
             String token = keycloakClient.getLoginToken(customer.getEmail(), customer.getPassword());
             return ResponseHandler.generateResponse("Registration successful", HttpStatus.OK, token);
-        } catch (RuntimeException e) {
-            return ResponseHandler.generateResponse(e.getMessage(), HttpStatus.CONFLICT, null);
-        }
+        }, "register");
     }
     /**
      * Retrieves a list of all customers.
@@ -88,12 +89,7 @@ public class CustomerController {
      */
     @GetMapping("/customers")
     public ResponseEntity<?> listCustomers() {
-        try {
-            List<Customer> customers = customerService.findAll();
-            return new ResponseEntity<>(customers, HttpStatus.OK);
-        } catch (Exception e) {
-            return new ResponseEntity<>("An error occurred while retrieving customers", HttpStatus.INTERNAL_SERVER_ERROR);
-        }
+        return handleRequest(customerService::findAll, "customers");
     }
 
     /**
@@ -106,15 +102,10 @@ public class CustomerController {
      */
     @PutMapping("/customers/{id}")
     public ResponseEntity<?> updateCustomer(@PathVariable Long id, @RequestBody Customer updatedCustomer, HttpServletRequest request) {
-        try {
+        return handleRequest(() -> {
             String token = request.getHeader("Authorization").substring(7);
-            Customer customer = customerService.updateCustomerWithAuthorization(id, updatedCustomer, token);
-            return new ResponseEntity<>(customer, HttpStatus.OK);
-        } catch (RuntimeException e) {
-            return new ResponseEntity<>(e.getMessage(), HttpStatus.UNAUTHORIZED);
-        } catch (Exception e) {
-            return new ResponseEntity<>("An error occurred while updating the customer", HttpStatus.INTERNAL_SERVER_ERROR);
-        }
+            return customerService.updateCustomerWithAuthorization(id, updatedCustomer, token);
+        }, "updateCustomer");
     }
 
     /**
@@ -125,11 +116,9 @@ public class CustomerController {
      */
     @DeleteMapping("/{id}")
     public ResponseEntity<?> deleteById(@PathVariable Long id) {
-        try {
+        return handleRequest(() -> {
             customerService.deleteCustomerById(id);
-            return new ResponseEntity<>(HttpStatus.NO_CONTENT);
-        } catch (Exception e) {
-            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
-        }
+            return null;
+        }, "deleteCustomer");
     }
 }

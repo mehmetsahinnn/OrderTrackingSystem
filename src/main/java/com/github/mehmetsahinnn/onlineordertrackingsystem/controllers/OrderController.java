@@ -1,13 +1,12 @@
 package com.github.mehmetsahinnn.onlineordertrackingsystem.controllers;
 
+import com.github.mehmetsahinnn.onlineordertrackingsystem.elasticservices.ElasticOrderService;
 import com.github.mehmetsahinnn.onlineordertrackingsystem.services.OrderService;
-import com.github.mehmetsahinnn.onlineordertrackingsystem.config.ResponseHandler;
 import com.github.mehmetsahinnn.onlineordertrackingsystem.models.Order;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -19,11 +18,11 @@ import java.util.List;
  */
 @RestController
 @RequestMapping("/api/orders")
-public class OrderController {
+@Log4j2
+public class OrderController extends BaseController{
 
     private final OrderService orderService;
-    private static final Logger logger = LoggerFactory.getLogger(OrderController.class);
-
+    private final ElasticOrderService elasticOrderService;
 
     /**
      * Constructs a new OrderController with the specified OrderService.
@@ -31,8 +30,9 @@ public class OrderController {
      * @param orderService the OrderService to be used by the OrderController
      */
     @Autowired
-    public OrderController(OrderService orderService) {
+    public OrderController(OrderService orderService, ElasticOrderService elasticOrderService) {
         this.orderService = orderService;
+        this.elasticOrderService = elasticOrderService;
     }
 
     /**
@@ -42,12 +42,9 @@ public class OrderController {
      * @return a ResponseEntity containing the placed order and the HTTP status
      */
     @PostMapping
+    @PreAuthorize("hasRole('USER') or hasRole('ADMIN')")
     public ResponseEntity<Object> placeOrder(@RequestBody Order order) {
-        try {
-            return orderService.placeOrder(order);
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
+        return handleRequest(() -> orderService.placeOrder(order), "Order placed successfully");
     }
 
     /**
@@ -57,13 +54,7 @@ public class OrderController {
      */
     @GetMapping
     public ResponseEntity<List<Order>> getAllOrders() {
-        try {
-            List<Order> orders = orderService.getAllOrders();
-            return new ResponseEntity<>(orders, HttpStatus.OK);
-        } catch (Exception e) {
-            logger.error("Error occurred while retrieving orders", e);
-            return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
-        }
+        return handleRequest(orderService::getAllOrders, "Fetching all orders");
     }
 
     /**
@@ -74,15 +65,7 @@ public class OrderController {
      */
     @GetMapping("/track/{id}")
     public ResponseEntity<Object> getOrderById(@PathVariable Long id) {
-        try {
-            Order order = orderService.getOrderById(id);
-            if (order == null) {
-                return ResponseHandler.generateResponse("Can't find the item", HttpStatus.NOT_FOUND, null);
-            }
-            return new ResponseEntity<>(order, HttpStatus.OK);
-        } catch (Exception e) {
-            return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
-        }
+        return handleRequest(() -> orderService.getOrderById(id), "Fetching order by id");
     }
 
     /**
@@ -94,11 +77,7 @@ public class OrderController {
      */
     @PutMapping("/{id}")
     public ResponseEntity<Object> updateOrder(@PathVariable Long id, @RequestBody Order newOrderData) {
-        try {
-            return orderService.updateOrder(id, newOrderData);
-        } catch (Exception e) {
-            throw new RuntimeException(e.getMessage());
-        }
+        return handleRequest(() -> orderService.updateOrder(id, newOrderData), "Updated order successfully");
     }
 
     /**
@@ -109,12 +88,10 @@ public class OrderController {
      */
     @DeleteMapping("/cancel/{id}")
     public ResponseEntity<Void> deleteOrder(@PathVariable Long id) {
-        try {
+        return handleRequest(() -> {
             orderService.cancelOrderAndIncreaseStock(id);
-            return new ResponseEntity<>(HttpStatus.NO_CONTENT);
-        } catch (RuntimeException e) {
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-        }
+            return null;
+        }, "Deleted order successfully");
     }
 
     /**
@@ -125,14 +102,14 @@ public class OrderController {
      */
     @GetMapping("/track/{id}/estimatedDeliveryDate")
     public ResponseEntity<?> getEstimatedDeliveryDate(@PathVariable Long id) {
-        try {
-            Order order = orderService.getOrderById(id);
-            if (order == null) {
-                return new ResponseEntity<>(null, HttpStatus.NOT_FOUND);
-            }
-            return new ResponseEntity<>(order.getEstimatedDeliveryDate(), HttpStatus.OK);
-        } catch (Exception e) {
-            return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
-        }
+        return handleRequest(() -> orderService.getOrderById(id).getEstimatedDeliveryDate(), "Fetching estimated delivery date");
+    }
+
+    @PostMapping("/save/saveToElasticsearch")
+    public ResponseEntity<Void> saveOrderToElasticsearch(@RequestParam Long orderId) {
+        return handleRequest(() -> {
+            elasticOrderService.saveOrderToElasticsearch(orderId);
+            return null;
+        }, "Saved order to Elasticsearch successfully");
     }
 }

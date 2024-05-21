@@ -8,20 +8,21 @@ services:
       POSTGRES_DB: keycloak
       POSTGRES_USER: keycloak
       POSTGRES_PASSWORD: password
+    ports:
+      - "5433:5432"
     networks:
       - keycloak_network
-
 
   keycloak:
     image: quay.io/keycloak/keycloak:24.0.3
     command: start-dev
     restart: always
-    links:
+    depends_on:
       - postgres
     ports:
       - "8180:8080"
     environment:
-      KEYCLOAK_ADMIN : admin
+      KEYCLOAK_ADMIN: admin
       KEYCLOAK_ADMIN_PASSWORD: 1234
       KC_DB: postgres
       KC_DB_SCHEMA: public
@@ -30,6 +31,37 @@ services:
       KC_DB_URL: jdbc:postgresql://postgres:5432/keycloak
     networks:
       - keycloak_network
+
+  es01:
+    image: docker.elastic.co/elasticsearch/elasticsearch:7.10.2
+    container_name: es01
+    environment:
+      - node.name=es01
+      - cluster.name=es-docker-cluster
+      - cluster.initial_master_nodes=es01
+      - bootstrap.memory_lock=true
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+    ports:
+      - "9200:9200"
+    networks:
+      - keycloak_network
+
+  kib01:
+    image: docker.elastic.co/kibana/kibana:7.10.2
+    container_name: kib01
+    ports:
+      - "5601:5601"
+    environment:
+      ELASTICSEARCH_URL: http://es01:9200
+      ELASTICSEARCH_HOSTS: http://es01:9200
+    networks:
+      - keycloak_network
+
+
 
 networks:
   keycloak_network:
