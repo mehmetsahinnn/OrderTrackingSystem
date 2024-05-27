@@ -8,28 +8,23 @@ import org.elasticsearch.ResourceNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
+
 @Service
 public class ElasticOrderService {
 
-    private final OrderRepository orderRepository;
     private final OrderDocumentRepository orderDocumentRepository;
 
-    public ElasticOrderService(OrderRepository orderRepository, OrderDocumentRepository orderDocumentRepository) {
-        this.orderRepository = orderRepository;
+    public ElasticOrderService(OrderDocumentRepository orderDocumentRepository) {
+
         this.orderDocumentRepository = orderDocumentRepository;
     }
 
-    @Transactional
-    public void saveOrderToElasticsearch(Long orderId) {
-        Order order = orderRepository.findById(orderId).orElseThrow(() -> new ResourceNotFoundException("Order not found"));
-        OrderDocument orderDocument = new OrderDocument();
+    public OrderDocument saveOrderDocument(OrderDocument orderDocument) {
+        return orderDocumentRepository.save(orderDocument);
+    }
 
-        orderDocument.setId(order.getId().toString());
-        orderDocument.setCustomerId(order.getCustomer().getId());
-        orderDocument.setStatus(order.getStatus().toString());
-        orderDocument.setOrderDate(order.getOrderDate());
-        orderDocument.setEstimatedDeliveryDate(order.getEstimatedDeliveryDate());
-
-        orderDocumentRepository.save(orderDocument);
+    public List<OrderDocument> findByStatus(String status) {
+        return orderDocumentRepository.findByStatus(status);
     }
 }

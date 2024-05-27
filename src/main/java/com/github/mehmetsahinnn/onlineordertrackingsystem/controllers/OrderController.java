@@ -1,5 +1,6 @@
 package com.github.mehmetsahinnn.onlineordertrackingsystem.controllers;
 
+import com.github.mehmetsahinnn.onlineordertrackingsystem.elasticdocuments.OrderDocument;
 import com.github.mehmetsahinnn.onlineordertrackingsystem.elasticservices.ElasticOrderService;
 import com.github.mehmetsahinnn.onlineordertrackingsystem.services.OrderService;
 import com.github.mehmetsahinnn.onlineordertrackingsystem.models.Order;
@@ -105,11 +106,13 @@ public class OrderController extends BaseController{
         return handleRequest(() -> orderService.getOrderById(id).getEstimatedDeliveryDate(), "Fetching estimated delivery date");
     }
 
-    @PostMapping("/save/saveToElasticsearch")
-    public ResponseEntity<Void> saveOrderToElasticsearch(@RequestParam Long orderId) {
-        return handleRequest(() -> {
-            elasticOrderService.saveOrderToElasticsearch(orderId);
-            return null;
-        }, "Saved order to Elasticsearch successfully");
+    @PostMapping("/elastic/orders")
+    public OrderDocument createOrder(@RequestBody OrderDocument orderDocument) {
+        return elasticOrderService.saveOrderDocument(orderDocument);
+    }
+
+    @GetMapping("/elastic/orders")
+    public List<OrderDocument> getOrdersByStatus(@RequestParam String status) {
+        return elasticOrderService.findByStatus(status);
     }
 }

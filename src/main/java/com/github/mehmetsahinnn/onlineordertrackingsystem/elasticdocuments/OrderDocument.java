@@ -3,6 +3,7 @@ package com.github.mehmetsahinnn.onlineordertrackingsystem.elasticdocuments;
 import lombok.*;
 import org.springframework.data.annotation.AccessType;
 import org.springframework.data.annotation.Id;
+import org.springframework.data.elasticsearch.annotations.DateFormat;
 import org.springframework.data.elasticsearch.annotations.Document;
 import org.springframework.data.elasticsearch.annotations.Field;
 import org.springframework.data.elasticsearch.annotations.FieldType;
@@ -27,8 +28,6 @@ public class OrderDocument {
 
     private String status;
     private Date orderDate;
-    private LocalDate estimatedDeliveryDate;
-
-
+    private Long estimatedDeliveryDate;
 
 }

@@ -12,7 +12,7 @@ import springfox.documentation.swagger2.annotations.EnableSwagger2;
 @EnableJpaAuditing
 @SpringBootApplication(exclude = {SecurityAutoConfiguration.class})
 @Configuration
-@EnableElasticsearchRepositories(basePackages = "com.github.mehmetsahinnn.onlineordertrackingsystem.elasticrepos")
+@EnableElasticsearchRepositories
 public class OnlineOrderTrackingSystemApplication {
 
 	public static void main(String[] args) {
