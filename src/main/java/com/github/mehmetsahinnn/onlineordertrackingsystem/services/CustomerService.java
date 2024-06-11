@@ -24,7 +24,7 @@ import java.util.List;
 public class CustomerService {
     private final CustomerRepository customerRepository;
     private final PCrypt crypt;
-    final String SECRETKEYSTRING = "93f725a07423fe1c889f448b33d21f46";
+    final String SECRETKEYSTRING = "93f725a07423fe1c889f448b33d21f46AFDASGHJKJFASDHGFASJASHDFJKAGSFGJAF93f725a07423fe1c889f448b33d21f46AFDASGHJKJFASDHGFASJASHDFJKAGSFGJAF....";
 
     /**
      * Constructs a new CustomerService with the specified CustomerRepository.

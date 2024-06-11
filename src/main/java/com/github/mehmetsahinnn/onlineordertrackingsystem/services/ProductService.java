@@ -1,12 +1,17 @@
 package com.github.mehmetsahinnn.onlineordertrackingsystem.services;
 
+import com.github.mehmetsahinnn.onlineordertrackingsystem.Exceptions.CustomUpdateStockException;
+import com.github.mehmetsahinnn.onlineordertrackingsystem.Exceptions.ProductNotFoundException;
+import com.github.mehmetsahinnn.onlineordertrackingsystem.Exceptions.ProductRetrievalException;
 import com.github.mehmetsahinnn.onlineordertrackingsystem.models.Product;
 import com.github.mehmetsahinnn.onlineordertrackingsystem.repositories.ProductRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -66,7 +71,7 @@ public class ProductService {
      */
     public Product getProductById(Long id) {
         try {
-            return productRepository.findById(id).orElse(null);
+            return productRepository.findById(id).orElse((Product) Collections.emptyList());
         } catch (Exception e) {
             logger.error("Error occurred while retrieving the product with id: {}", id, e);
             throw new RuntimeException("Error occurred while retrieving the product with id: " + id, e);
@@ -82,15 +87,18 @@ public class ProductService {
      * @return the list of matching products
      */
     public List<Product> searchProducts(String category, Double minPrice, Double maxPrice) {
+        if (minPrice != null && maxPrice != null && minPrice > maxPrice) {
+            throw new IllegalArgumentException("Invalid price range. Max price must be greater than min price.");
+        }
         try {
             if (category != null) {
                 return searchProductsByCategoryAndPrice(category, minPrice, maxPrice);
             } else {
                 return searchProductsByPrice(minPrice, maxPrice);
             }
-        } catch (Exception e) {
-            logger.error("Error occurred while searching for products", e);
-            throw new RuntimeException("Error occurred while searching for products", e);
+        } catch (IllegalArgumentException e) {
+            logger.error("Error occurred while searching for products with category: {}, minPrice: {}, maxPrice: {}", category, minPrice, maxPrice, e);
+            throw new IllegalArgumentException("Error occurred while searching for products", e);
         }
     }
 
@@ -147,14 +155,19 @@ public class ProductService {
      * @param id          the ID of the product to update
      * @param newQuantity the new quantity of the product
      */
+    @Transactional
     public void updateStock(Long id, Integer newQuantity) {
+        if (newQuantity == null || newQuantity < 0) {
+            throw new IllegalArgumentException("Invalid quantity. Quantity must be a non-negative integer.");
+        }
         try {
             Product product = findProductById(id);
-            product.setNumberInStock(newQuantity);
+            Integer oldProduct = findProductById(id).getNumberInStock();
+            product.setNumberInStock(oldProduct + newQuantity);
             productRepository.save(product);
         } catch (Exception e) {
-            logger.error("Error occurred while updating the stock of the product with id: " + id, e);
-            throw new RuntimeException("Error occurred while updating the stock of the product with id: " + id, e);
+            logger.error("Error occurred while updating the stock of the product with id: {}", id, e);
+            throw new CustomUpdateStockException("Error occurred while updating the stock of the product with id: " + id, e);
         }
     }
 
@@ -166,14 +179,10 @@ public class ProductService {
      */
     private Product findProductById(Long id) {
         try {
-            Product product = productRepository.findById(id).orElse(null);
-            if (product == null) {
-                throw new RuntimeException("Product not found with id: " + id);
-            }
-            return product;
+            return productRepository.findById(id).orElseThrow(() -> new ProductNotFoundException("Product not found with id: " + id));
         } catch (Exception e) {
-            logger.error("Error occurred while retrieving the product with id: " + id, e);
-            throw new RuntimeException("Error occurred while retrieving the product with id: " + id, e);
+            logger.error("Error occurred while retrieving the product with id: {}", id, e);
+            throw new ProductRetrievalException("Error occurred while retrieving the product with id: " + id, e);
         }
     }
 
@@ -193,7 +202,7 @@ public class ProductService {
     /**
      * Updates the product identified by the given ID with the provided updated product details.
      *
-     * @param id            the ID of the product to be updated
+     * @param id             the ID of the product to be updated
      * @param updatedProduct the updated product information
      * @return the updated product entity if the update operation is successful
      * @throws RuntimeException if no product is found with the given ID
@@ -213,6 +222,9 @@ public class ProductService {
         return saveProduct(existingProduct);
     }
 
+    public List<Product> findProductsByCategory(String category) {
+        return productRepository.findByCategory(category);
+    }
 }
 
 

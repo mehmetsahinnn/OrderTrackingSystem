@@ -1,15 +1,13 @@
 package com.github.mehmetsahinnn.onlineordertrackingsystem.services;
 
+import com.github.mehmetsahinnn.onlineordertrackingsystem.Exceptions.InsufficientStockException;
 import com.github.mehmetsahinnn.onlineordertrackingsystem.config.KeycloakClient;
 import com.github.mehmetsahinnn.onlineordertrackingsystem.config.ResponseHandler;
-import com.github.mehmetsahinnn.onlineordertrackingsystem.elasticdocuments.OrderDocument;
 import com.github.mehmetsahinnn.onlineordertrackingsystem.models.Order;
 import com.github.mehmetsahinnn.onlineordertrackingsystem.models.OrderItem;
-import com.github.mehmetsahinnn.onlineordertrackingsystem.elasticrepos.OrderDocumentRepository;
 import com.github.mehmetsahinnn.onlineordertrackingsystem.repositories.OrderRepository;
 import com.github.mehmetsahinnn.onlineordertrackingsystem.enums.OrderStatus;
 import com.github.mehmetsahinnn.onlineordertrackingsystem.models.Product;
-import org.elasticsearch.ResourceNotFoundException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,8 +15,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Optional;
@@ -78,10 +76,10 @@ public class OrderService {
 
         if (orderItem.getQuantity() > numberInStock) {
             logger.error("Error occurred while placing the order: Insufficient stock for product id: {}", product.getId());
-            throw new RuntimeException("Insufficient stock for product id: " + product.getId());
+            throw new InsufficientStockException("Insufficient stock for product id: " + product.getId());
         }
 
-        productService.updateStock(product.getId(), numberInStock - orderItem.getQuantity());
+        productService.updateStock(product.getId(), -orderItem.getQuantity());
     }
 
     /**
@@ -158,6 +156,8 @@ public class OrderService {
             throw new RuntimeException("Order must be SHIPPED before it can be DELIVERED");
         } else if (newStatus == OrderStatus.CANCELLED && currentStatus == OrderStatus.DELIVERED) {
             throw new RuntimeException("DELIVERED orders cannot be CANCELLED");
+        } else if (newStatus == OrderStatus.CANCELLED && currentStatus == OrderStatus.CONFIRMED) {
+            // Allow orders to be cancelled if they are in the CONFIRMED state
         }
         return newStatus;
     }
@@ -175,6 +175,7 @@ public class OrderService {
             if (order == null) {
                 ResponseHandler.generateResponse("Order not found with id: " + orderId, HttpStatus.NOT_FOUND, null);
                 return;
+
             }
 
             order.setStatus(OrderStatus.CANCELLED);

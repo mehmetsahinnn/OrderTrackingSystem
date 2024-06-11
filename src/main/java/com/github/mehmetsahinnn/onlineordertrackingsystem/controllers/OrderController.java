@@ -2,6 +2,7 @@ package com.github.mehmetsahinnn.onlineordertrackingsystem.controllers;
 
 import com.github.mehmetsahinnn.onlineordertrackingsystem.elasticdocuments.OrderDocument;
 import com.github.mehmetsahinnn.onlineordertrackingsystem.elasticservices.ElasticOrderService;
+import com.github.mehmetsahinnn.onlineordertrackingsystem.enums.OrderStatus;
 import com.github.mehmetsahinnn.onlineordertrackingsystem.services.OrderService;
 import com.github.mehmetsahinnn.onlineordertrackingsystem.models.Order;
 import lombok.extern.log4j.Log4j2;
@@ -43,7 +44,6 @@ public class OrderController extends BaseController{
      * @return a ResponseEntity containing the placed order and the HTTP status
      */
     @PostMapping
-    @PreAuthorize("hasRole('USER') or hasRole('ADMIN')")
     public ResponseEntity<Object> placeOrder(@RequestBody Order order) {
         return handleRequest(() -> orderService.placeOrder(order), "Order placed successfully");
     }
