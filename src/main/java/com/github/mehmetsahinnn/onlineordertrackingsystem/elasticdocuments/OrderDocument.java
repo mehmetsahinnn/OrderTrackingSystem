@@ -2,12 +2,10 @@ package com.github.mehmetsahinnn.onlineordertrackingsystem.elasticdocuments;
 
 import com.github.mehmetsahinnn.onlineordertrackingsystem.enums.OrderStatus;
 import lombok.*;
-import org.springframework.data.annotation.AccessType;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.elasticsearch.annotations.*;
 
-import java.time.LocalDate;
-import java.util.Date;
+import java.time.LocalDateTime;
 
 @Setter
 @Getter
@@ -21,6 +19,7 @@ public class OrderDocument {
     @Field(name="id", type = FieldType.Keyword)
     private String id;
 
+    private String username;
 
     private Long customerId;
 
@@ -31,7 +30,7 @@ public class OrderDocument {
             }
     )
     private OrderStatus status;
-    private LocalDate orderDate;
-    private Long estimatedDeliveryDate;
+    private LocalDateTime orderDate;
+    private LocalDateTime estimatedDeliveryDate;
 
 }
