@@ -16,10 +16,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 
-import java.util.Collections;
-import java.util.List;
-import java.util.NoSuchElementException;
-import java.util.Optional;
+import java.util.*;
 
 /**
  * The OrderService class provides services for managing orders.
@@ -194,5 +191,8 @@ public class OrderService {
         }
     }
 
+    public Order getOrderByTrackId(UUID orderTrackId) {
+        return orderRepository.findByOrderTrackId(orderTrackId);
+    }
 
 }

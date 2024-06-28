@@ -12,6 +12,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.UUID;
 
 
 /**
@@ -114,5 +115,10 @@ public class OrderController extends BaseController{
     @GetMapping("/elastic/orders")
     public List<OrderDocument> getOrdersByStatus(@RequestParam String status) {
         return elasticOrderService.findByStatus(status);
+    }
+
+    @GetMapping("/{orderTrackId}")
+    public Order getOrderByTrackId(@PathVariable UUID orderTrackId) {
+        return orderService.getOrderByTrackId(orderTrackId);
     }
 }

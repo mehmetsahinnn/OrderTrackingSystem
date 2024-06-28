@@ -34,11 +34,13 @@ public class ElasticOrderService {
     }
 
     public Map<Long, List<OrderDocument>> filterOrderByUser(String username, LocalDateTime startDate, LocalDateTime endDate) {
-        List<OrderDocument> userOrders = orderDocumentRepository.findUserByUsername(username);
+        List<OrderDocument> orders = orderDocumentRepository.findUserByUsername(username);
 
-        return userOrders.stream()
-                .filter(order -> (order.getOrderDate().isAfter(startDate) && order.getOrderDate().isBefore(endDate)) ||
-                        order.getOrderDate().isEqual(startDate) || order.getOrderDate().isEqual(endDate))
+        List<OrderDocument> filteredOrders = orders.stream()
+                .filter(order -> !order.getOrderDate().isBefore(startDate) && !order.getOrderDate().isAfter(endDate))
+                .toList();
+
+        return filteredOrders.stream()
                 .collect(Collectors.groupingBy(OrderDocument::getCustomerId));
     }
 }

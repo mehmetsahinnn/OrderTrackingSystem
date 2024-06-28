@@ -35,3 +35,7 @@ build/
 .vscode/
 /src/main/resources/.env
 /src/main/resources/application.properties
+
+src/main/resources/pg-data
+src/main/resources/pgdata
+src/main/resources/postgresql.conf
