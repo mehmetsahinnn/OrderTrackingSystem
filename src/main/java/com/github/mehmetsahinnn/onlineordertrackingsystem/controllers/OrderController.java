@@ -5,6 +5,7 @@ import com.github.mehmetsahinnn.onlineordertrackingsystem.elasticservices.Elasti
 import com.github.mehmetsahinnn.onlineordertrackingsystem.enums.OrderStatus;
 import com.github.mehmetsahinnn.onlineordertrackingsystem.services.OrderService;
 import com.github.mehmetsahinnn.onlineordertrackingsystem.models.Order;
+import jakarta.validation.Valid;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -45,7 +46,7 @@ public class OrderController extends BaseController{
      * @return a ResponseEntity containing the placed order and the HTTP status
      */
     @PostMapping
-    public ResponseEntity<Object> placeOrder(@RequestBody Order order) {
+    public ResponseEntity<Object> placeOrder(@Valid @RequestBody Order order) {
         return handleRequest(() -> orderService.placeOrder(order), "Order placed successfully");
     }
 

@@ -5,6 +5,7 @@ import com.github.mehmetsahinnn.onlineordertrackingsystem.config.KeycloakClient;
 import com.github.mehmetsahinnn.onlineordertrackingsystem.config.ResponseHandler;
 import com.github.mehmetsahinnn.onlineordertrackingsystem.models.Order;
 import com.github.mehmetsahinnn.onlineordertrackingsystem.models.OrderItem;
+import com.github.mehmetsahinnn.onlineordertrackingsystem.producers.OrderProducer;
 import com.github.mehmetsahinnn.onlineordertrackingsystem.repositories.OrderRepository;
 import com.github.mehmetsahinnn.onlineordertrackingsystem.enums.OrderStatus;
 import com.github.mehmetsahinnn.onlineordertrackingsystem.models.Product;
@@ -16,6 +17,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
 import java.util.*;
 
 /**
@@ -26,6 +28,7 @@ import java.util.*;
 public class OrderService {
     private final OrderRepository orderRepository;
     private final ProductService productService;
+    private final OrderProducer orderProducer;
     private static final Logger logger = LoggerFactory.getLogger(OrderService.class);
     private final KeycloakClient keycloakClient;
 
@@ -37,9 +40,10 @@ public class OrderService {
      * @param productService  the ProductService to be used by the OrderService
      */
     @Autowired
-    public OrderService(OrderRepository orderRepository, ProductService productService, KeycloakClient keycloakClient) {
+    public OrderService(OrderRepository orderRepository, ProductService productService, OrderProducer orderProducer, KeycloakClient keycloakClient) {
         this.orderRepository = orderRepository;
         this.productService = productService;
+        this.orderProducer = orderProducer;
         this.keycloakClient = keycloakClient;
     }
 
@@ -57,8 +61,15 @@ public class OrderService {
         try {
             order.getOrderItems().forEach(this::validateAndUpdateStock);
 
+
+            order.setOrderTrackId(UUID.fromString(UUID.randomUUID().toString()));
+            order.setOrderDate(new Date());
             order.setStatus(OrderStatus.CONFIRMED);
+            order.setEstimatedDeliveryDate(LocalDate.now().plusDays(5));
+
             Order savedOrder = orderRepository.save(order);
+
+            orderProducer.sendToQueue(savedOrder);
 
             return ResponseHandler.generateResponse("Order placed successfully.", HttpStatus.CREATED, savedOrder);
         } catch (RuntimeException ex) {

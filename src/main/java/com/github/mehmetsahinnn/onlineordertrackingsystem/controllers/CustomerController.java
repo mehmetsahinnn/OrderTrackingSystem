@@ -114,7 +114,7 @@ public class CustomerController extends BaseController{
      * @param id the ID of the customer to delete
      * @return a ResponseEntity containing the HTTP status
      */
-    @DeleteMapping("/{id}")
+    @DeleteMapping("/customer/{id}")
     public ResponseEntity<?> deleteById(@PathVariable Long id) {
         return handleRequest(() -> {
             customerService.deleteCustomerById(id);

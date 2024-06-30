@@ -26,11 +26,11 @@ public class Order implements Serializable {
     @Column(name = "ordertrackid", columnDefinition = "uuid")
     private UUID orderTrackId;
 
-    @ManyToOne(fetch = FetchType.EAGER)
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "customerid")
     private Customer customer;
 
-    @OneToMany(mappedBy = "order")
+    @OneToMany(mappedBy = "order", cascade = CascadeType.ALL)
     @JsonBackReference
     private List<OrderItem> orderItems;
 

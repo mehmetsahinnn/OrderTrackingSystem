@@ -40,21 +40,6 @@ public class OrderProducer {
         this.rabbitMQConfig = rabbitMQConfig;
     }
 
-    @PostConstruct
-    public void init() {
-        runSomething();
-    }
-
-    @Scheduled(fixedDelay = 5000, initialDelay = 5000)
-    public void runSomething() {
-        order.setOrderTrackId(UUID.fromString(String.valueOf(UUID.randomUUID().toString())));
-        order.setOrderDate(new Date());
-        order.setStatus(OrderStatus.CONFIRMED);
-        order.setEstimatedDeliveryDate(LocalDate.now().plusDays(5));
-        order.setCustomer(new Customer(1L, "m", "s", "b", "1234", "adfs@gmaik.com", AccountStatus.USER));
-        sendToQueue(order);
-    }
-
     public void sendToQueue(Order order) {
         System.out.println("Order ID : " + order.getOrderTrackId());
         rabbitTemplate.setMessageConverter(rabbitMQConfig.jsonMessageConverter());

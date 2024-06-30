@@ -6,6 +6,7 @@ import com.github.mehmetsahinnn.onlineordertrackingsystem.elasticrepos.OrderDocu
 import com.github.mehmetsahinnn.onlineordertrackingsystem.elasticservices.ElasticOrderService;
 import com.github.mehmetsahinnn.onlineordertrackingsystem.models.Order;
 import com.github.mehmetsahinnn.onlineordertrackingsystem.models.OrderItem;
+import com.github.mehmetsahinnn.onlineordertrackingsystem.producers.OrderProducer;
 import com.github.mehmetsahinnn.onlineordertrackingsystem.repositories.OrderRepository;
 import com.github.mehmetsahinnn.onlineordertrackingsystem.models.Product;
 import com.github.mehmetsahinnn.onlineordertrackingsystem.enums.OrderStatus;
@@ -54,7 +55,7 @@ public class OrderServiceTest {
     public void placeOrder() {
         Order order = new Order();
         order.setOrderItems(Collections.singletonList(new OrderItem(null, order, new Product(1L, "Product", "Description", "Category", 10.0, 10), 1, 10.0)));
-        OrderService orderService = new OrderService(mock(OrderRepository.class), mock(ProductService.class), mock(KeycloakClient.class));
+        OrderService orderService = new OrderService(mock(OrderRepository.class), mock(ProductService.class), mock(OrderProducer.class) ,mock(KeycloakClient.class));
         ResponseEntity<Object> response = orderService.placeOrder(order);
         assertEquals(HttpStatus.CREATED, response.getStatusCode());
     }
@@ -87,7 +88,7 @@ public class OrderServiceTest {
         OrderRepository mockOrderRepository = mock(OrderRepository.class);
         when(mockOrderRepository.findById(1L)).thenReturn(Optional.of(existingOrder));
 
-        OrderService orderService = new OrderService(mockOrderRepository, mock(ProductService.class), mock(KeycloakClient.class));
+        OrderService orderService = new OrderService(mockOrderRepository, mock(ProductService.class), mock(OrderProducer.class), mock(KeycloakClient.class));
         Order result = orderService.getOrderById(1L);
 
         assertNotNull(result);
@@ -111,7 +112,7 @@ public class OrderServiceTest {
 
         KeycloakClient keycloakClientMock = mock(KeycloakClient.class);
 
-        OrderService orderService = new OrderService(orderRepositoryMock, productServiceMock, keycloakClientMock);
+        OrderService orderService = new OrderService(orderRepositoryMock, productServiceMock, mock(OrderProducer.class), keycloakClientMock);
 
         ResponseEntity<Object> response = orderService.placeOrder(order);
 
@@ -142,7 +143,7 @@ public class OrderServiceTest {
         when(mockOrderRepository.findById(orderId)).thenReturn(Optional.of(mockOrder));
         when(mockProductService.updateProduct(anyLong(), any(Product.class))).thenReturn(mockProduct);
 
-        OrderService orderService = new OrderService(mockOrderRepository, mockProductService, mockKeycloakClient);
+        OrderService orderService = new OrderService(mockOrderRepository, mockProductService, mock(OrderProducer.class), mockKeycloakClient);
 
         // Act
         orderService.cancelOrderAndIncreaseStock(orderId);
@@ -160,7 +161,7 @@ public class OrderServiceTest {
     public void delete_existing_order_by_id() {
         OrderRepository mockOrderRepository = mock(OrderRepository.class);
         doNothing().when(mockOrderRepository).deleteById(1L);
-        OrderService orderService = new OrderService(mockOrderRepository, mock(ProductService.class), mock(KeycloakClient.class));
+        OrderService orderService = new OrderService(mockOrderRepository, mock(ProductService.class), mock(OrderProducer.class), mock(KeycloakClient.class));
         assertDoesNotThrow(() -> orderService.deleteOrder(1L));
     }
 
