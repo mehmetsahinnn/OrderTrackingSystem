@@ -59,8 +59,6 @@ public class OrderService {
         try {
 
             order.setOrderTrackId(UUID.randomUUID());
-            order.setStatus(OrderStatus.CONFIRMED);
-
             orderProducer.sendToQueue(order);
 
             return ResponseHandler.generateResponse("Order placed successfully.", HttpStatus.CREATED, order);
