@@ -1,7 +1,7 @@
 package com.github.mehmetsahinnn.onlineordertrackingsystem.models;
 
-import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import com.github.mehmetsahinnn.onlineordertrackingsystem.enums.OrderStatus;
 import lombok.*;
 import jakarta.persistence.*;
@@ -30,8 +30,8 @@ public class Order implements Serializable {
     @JoinColumn(name = "customerid")
     private Customer customer;
 
-    @OneToMany(mappedBy = "order", cascade = CascadeType.ALL)
-    @JsonBackReference
+    @OneToMany(mappedBy = "order", fetch = FetchType.LAZY)
+    @JsonManagedReference
     private List<OrderItem> orderItems;
 
     @Enumerated(EnumType.STRING)

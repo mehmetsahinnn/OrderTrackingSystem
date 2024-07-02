@@ -1,6 +1,5 @@
 package com.github.mehmetsahinnn.onlineordertrackingsystem.services;
 
-import com.github.mehmetsahinnn.onlineordertrackingsystem.Exceptions.InsufficientStockException;
 import com.github.mehmetsahinnn.onlineordertrackingsystem.config.KeycloakClient;
 import com.github.mehmetsahinnn.onlineordertrackingsystem.config.ResponseHandler;
 import com.github.mehmetsahinnn.onlineordertrackingsystem.models.Order;
@@ -17,7 +16,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 
-import java.time.LocalDate;
 import java.util.*;
 
 /**
@@ -59,36 +57,18 @@ public class OrderService {
     @PreAuthorize("hasRole('USER') or hasRole('ADMIN')")
     public ResponseEntity<Object> placeOrder(Order order) {
         try {
-            order.getOrderItems().forEach(this::validateAndUpdateStock);
 
-
-            order.setOrderTrackId(UUID.fromString(UUID.randomUUID().toString()));
-            order.setOrderDate(new Date());
+            order.setOrderTrackId(UUID.randomUUID());
             order.setStatus(OrderStatus.CONFIRMED);
-            order.setEstimatedDeliveryDate(LocalDate.now().plusDays(5));
 
-            Order savedOrder = orderRepository.save(order);
+            orderProducer.sendToQueue(order);
 
-            orderProducer.sendToQueue(savedOrder);
-
-            return ResponseHandler.generateResponse("Order placed successfully.", HttpStatus.CREATED, savedOrder);
+            return ResponseHandler.generateResponse("Order placed successfully.", HttpStatus.CREATED, order);
         } catch (RuntimeException ex) {
             return ResponseHandler.generateResponse(ex.getMessage(), HttpStatus.BAD_REQUEST, null);
         }
     }
 
-
-    private void validateAndUpdateStock(OrderItem orderItem) {
-        Product product = orderItem.getProduct();
-        int numberInStock = Optional.ofNullable(product.getNumberInStock()).orElse(0);
-
-        if (orderItem.getQuantity() > numberInStock) {
-            logger.error("Error occurred while placing the order: Insufficient stock for product id: {}", product.getId());
-            throw new InsufficientStockException("Insufficient stock for product id: " + product.getId());
-        }
-
-        productService.updateStock(product.getId(), -orderItem.getQuantity());
-    }
 
     /**
      * Retrieves an order by its ID.
@@ -164,8 +144,6 @@ public class OrderService {
             throw new RuntimeException("Order must be SHIPPED before it can be DELIVERED");
         } else if (newStatus == OrderStatus.CANCELLED && currentStatus == OrderStatus.DELIVERED) {
             throw new RuntimeException("DELIVERED orders cannot be CANCELLED");
-        } else if (newStatus == OrderStatus.CANCELLED && currentStatus == OrderStatus.CONFIRMED) {
-            // Allow orders to be cancelled if they are in the CONFIRMED state
         }
         return newStatus;
     }

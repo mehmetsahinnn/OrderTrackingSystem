@@ -1,8 +1,7 @@
 package com.github.mehmetsahinnn.onlineordertrackingsystem.services;
 
 import com.github.mehmetsahinnn.onlineordertrackingsystem.Exceptions.CustomUpdateStockException;
-import com.github.mehmetsahinnn.onlineordertrackingsystem.Exceptions.ProductNotFoundException;
-import com.github.mehmetsahinnn.onlineordertrackingsystem.Exceptions.ProductRetrievalException;
+import com.github.mehmetsahinnn.onlineordertrackingsystem.Exceptions.InsufficientStockException;
 import com.github.mehmetsahinnn.onlineordertrackingsystem.models.Product;
 import com.github.mehmetsahinnn.onlineordertrackingsystem.repositories.ProductRepository;
 import org.slf4j.Logger;
@@ -11,7 +10,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
@@ -153,17 +151,23 @@ public class ProductService {
      * Updates the stock of a product.
      *
      * @param id          the ID of the product to update
-     * @param newQuantity the new quantity of the product
+     * @param quantityChange the new quantity of the product
      */
     @Transactional
-    public void updateStock(Long id, Integer newQuantity) {
-        if (newQuantity == null || newQuantity < 0) {
-            throw new IllegalArgumentException("Invalid quantity. Quantity must be a non-negative integer.");
+    public void updateStock(Long id, Integer quantityChange) {
+        if (quantityChange == null) {
+            throw new IllegalArgumentException("Invalid quantity change. Quantity change must not be null.");
         }
         try {
             Product product = getProductById(id);
-            Integer oldProduct = getProductById(id).getNumberInStock();
-            product.setNumberInStock(oldProduct + newQuantity);
+            int currentStock = Optional.ofNullable(product.getNumberInStock()).orElse(0);
+
+            int updatedStock = currentStock + quantityChange;
+            if (updatedStock < 0) {
+                throw new InsufficientStockException("Insufficient stock for product id: " + product.getId());
+            }
+
+            product.setNumberInStock(updatedStock);
             productRepository.save(product);
         } catch (Exception e) {
             logger.error("Error occurred while updating the stock of the product with id: {}", id, e);

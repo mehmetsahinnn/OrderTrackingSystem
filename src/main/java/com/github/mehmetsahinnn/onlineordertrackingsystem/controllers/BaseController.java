@@ -1,14 +1,14 @@
 package com.github.mehmetsahinnn.onlineordertrackingsystem.controllers;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import lombok.extern.log4j.Log4j2;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
 import java.util.HashMap;
 import java.util.Map;
 
-@Log4j2
+@Slf4j
 public abstract class BaseController {
 
     protected <T> ResponseEntity<T> handleRequest(RequestHandler<T> handler, String... logMessages) {
