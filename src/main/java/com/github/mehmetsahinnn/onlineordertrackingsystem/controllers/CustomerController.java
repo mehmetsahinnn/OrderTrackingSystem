@@ -9,14 +9,10 @@ import com.github.mehmetsahinnn.onlineordertrackingsystem.models.Customer;
 import com.github.mehmetsahinnn.onlineordertrackingsystem.security.PCrypt;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.log4j.Log4j2;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
 
 
 /**
@@ -24,7 +20,7 @@ import java.util.List;
  * It includes endpoints for login and registration.
  */
 @RestController
-@RequestMapping("/api")
+@RequestMapping("/api/customer")
 @Log4j2
 public class CustomerController extends BaseController{
 
@@ -87,7 +83,7 @@ public class CustomerController extends BaseController{
      *
      * @return a ResponseEntity containing the list of customers if retrieval is successful, or an error message otherwise
      */
-    @GetMapping("/customers")
+    @GetMapping("/getAllCustomers")
     public ResponseEntity<?> listCustomers() {
         return handleRequest(customerService::findAll, "customers");
     }
@@ -100,7 +96,7 @@ public class CustomerController extends BaseController{
      * @param request         the HttpServletRequest containing the JWT token
      * @return a ResponseEntity containing the updated customer details if update is successful, or an error message otherwise
      */
-    @PutMapping("/customers/{id}")
+    @PutMapping("/updateCustomerById/{id}")
     public ResponseEntity<?> updateCustomer(@PathVariable Long id, @RequestBody Customer updatedCustomer, HttpServletRequest request) {
         return handleRequest(() -> {
             String token = request.getHeader("Authorization").substring(7);
@@ -114,7 +110,7 @@ public class CustomerController extends BaseController{
      * @param id the ID of the customer to delete
      * @return a ResponseEntity containing the HTTP status
      */
-    @DeleteMapping("/customer/{id}")
+    @DeleteMapping("/deleteCustomerById/{id}")
     public ResponseEntity<?> deleteById(@PathVariable Long id) {
         return handleRequest(() -> {
             customerService.deleteCustomerById(id);
