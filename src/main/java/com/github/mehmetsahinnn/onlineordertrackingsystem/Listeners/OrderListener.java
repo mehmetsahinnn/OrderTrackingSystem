@@ -6,49 +6,55 @@ import com.github.mehmetsahinnn.onlineordertrackingsystem.models.Order;
 import com.github.mehmetsahinnn.onlineordertrackingsystem.models.OrderItem;
 import com.github.mehmetsahinnn.onlineordertrackingsystem.models.Product;
 import com.github.mehmetsahinnn.onlineordertrackingsystem.repositories.OrderRepository;
-import com.github.mehmetsahinnn.onlineordertrackingsystem.services.ProductService;
+import com.github.mehmetsahinnn.onlineordertrackingsystem.repositories.ProductRepository;
+import com.github.mehmetsahinnn.onlineordertrackingsystem.services.OrderService;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
-import java.util.Optional;
 
+@Slf4j
 @Service
 public class OrderListener {
 
     private final OrderRepository orderRepository;
-    private final ProductService productService;
+    private final ProductRepository productRepository;
 
     @Autowired
-    public OrderListener(OrderRepository orderRepository, ProductService productService) {
+    public OrderListener(OrderRepository orderRepository,ProductRepository productRepository) {
         this.orderRepository = orderRepository;
-        this.productService = productService;
+        this.productRepository = productRepository;
     }
 
     @RabbitListener(queues = "order-queue")
     public void handleMessage(Order order) {
         System.out.println("Received message: " + order);
-
         try {
-            order.getOrderItems().forEach(this::validateAndUpdateStock);
             order.setStatus(OrderStatus.CONFIRMED);
             order.setEstimatedDeliveryDate(LocalDate.now().plusDays(5));
-
             orderRepository.save(order);
+            order.getOrderItems().forEach(this::updateStock);
         } catch (Exception e) {
             System.err.println("Error processing order: " + e.getMessage());
         }
     }
 
-    private void validateAndUpdateStock(OrderItem orderItem) {
-        Product product = orderItem.getProduct();
-        int numberInStock = Optional.ofNullable(product.getNumberInStock()).orElse(0);
 
-        if (orderItem.getQuantity() > numberInStock) {
+    private void updateStock(OrderItem orderItem) {
+        Product product = productRepository.findById(orderItem.getProduct().getId())
+                .orElseThrow(() -> new RuntimeException("Product not found with id: " + orderItem.getProduct().getId()));
+
+        int currentStock = product.getNumberInStock() != null ? product.getNumberInStock() : 0;
+        int updatedStock = currentStock - orderItem.getQuantity();
+
+        if (updatedStock < 0) {
             throw new InsufficientStockException("Insufficient stock for product id: " + product.getId());
         }
 
-        productService.updateStock(product.getId(), -orderItem.getQuantity());
+        product.setNumberInStock(updatedStock);
+        productRepository.save(product);
     }
+
 }

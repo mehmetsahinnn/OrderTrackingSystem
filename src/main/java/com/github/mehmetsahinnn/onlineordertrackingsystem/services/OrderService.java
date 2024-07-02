@@ -1,5 +1,6 @@
 package com.github.mehmetsahinnn.onlineordertrackingsystem.services;
 
+import com.github.mehmetsahinnn.onlineordertrackingsystem.Exceptions.InsufficientStockException;
 import com.github.mehmetsahinnn.onlineordertrackingsystem.config.KeycloakClient;
 import com.github.mehmetsahinnn.onlineordertrackingsystem.config.ResponseHandler;
 import com.github.mehmetsahinnn.onlineordertrackingsystem.models.Order;
@@ -8,6 +9,7 @@ import com.github.mehmetsahinnn.onlineordertrackingsystem.producers.OrderProduce
 import com.github.mehmetsahinnn.onlineordertrackingsystem.repositories.OrderRepository;
 import com.github.mehmetsahinnn.onlineordertrackingsystem.enums.OrderStatus;
 import com.github.mehmetsahinnn.onlineordertrackingsystem.models.Product;
+import com.github.mehmetsahinnn.onlineordertrackingsystem.repositories.ProductRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -27,8 +29,8 @@ public class OrderService {
     private final OrderRepository orderRepository;
     private final ProductService productService;
     private final OrderProducer orderProducer;
-    private static final Logger logger = LoggerFactory.getLogger(OrderService.class);
     private final KeycloakClient keycloakClient;
+    private final ProductRepository productRepository;
 
 
     /**
@@ -38,11 +40,12 @@ public class OrderService {
      * @param productService  the ProductService to be used by the OrderService
      */
     @Autowired
-    public OrderService(OrderRepository orderRepository, ProductService productService, OrderProducer orderProducer, KeycloakClient keycloakClient) {
+    public OrderService(OrderRepository orderRepository, ProductService productService, OrderProducer orderProducer, KeycloakClient keycloakClient, ProductRepository productRepository) {
         this.orderRepository = orderRepository;
         this.productService = productService;
         this.orderProducer = orderProducer;
         this.keycloakClient = keycloakClient;
+        this.productRepository = productRepository;
     }
 
     /**
@@ -57,10 +60,8 @@ public class OrderService {
     @PreAuthorize("hasRole('USER') or hasRole('ADMIN')")
     public ResponseEntity<Object> placeOrder(Order order) {
         try {
-
             order.setOrderTrackId(UUID.randomUUID());
             orderProducer.sendToQueue(order);
-
             return ResponseHandler.generateResponse("Order placed successfully.", HttpStatus.CREATED, order);
         } catch (RuntimeException ex) {
             return ResponseHandler.generateResponse(ex.getMessage(), HttpStatus.BAD_REQUEST, null);

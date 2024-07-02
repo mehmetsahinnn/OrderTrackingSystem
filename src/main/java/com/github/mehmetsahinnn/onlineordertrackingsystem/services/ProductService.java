@@ -148,34 +148,6 @@ public class ProductService {
     }
 
     /**
-     * Updates the stock of a product.
-     *
-     * @param id          the ID of the product to update
-     * @param quantityChange the new quantity of the product
-     */
-    @Transactional
-    public void updateStock(Long id, Integer quantityChange) {
-        if (quantityChange == null) {
-            throw new IllegalArgumentException("Invalid quantity change. Quantity change must not be null.");
-        }
-        try {
-            Product product = getProductById(id);
-            int currentStock = Optional.ofNullable(product.getNumberInStock()).orElse(0);
-
-            int updatedStock = currentStock + quantityChange;
-            if (updatedStock < 0) {
-                throw new InsufficientStockException("Insufficient stock for product id: " + product.getId());
-            }
-
-            product.setNumberInStock(updatedStock);
-            productRepository.save(product);
-        } catch (Exception e) {
-            logger.error("Error occurred while updating the stock of the product with id: {}", id, e);
-            throw new CustomUpdateStockException("Error occurred while updating the stock of the product with id: " + id, e);
-        }
-    }
-
-    /**
      * Retrieves all products.
      *
      * @return the list of all products

@@ -164,9 +164,6 @@ public class ProductServiceTest {
         when(productRepository.findById(product.getId())).thenReturn(Optional.of(product));
         when(productRepository.save(any(Product.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
-        productService.updateStock(product.getId(), 10);
-
-        assertEquals(15, product.getNumberInStock());
     }
     /**
      * Tests the findAll method of ProductService.
