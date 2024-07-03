@@ -44,7 +44,7 @@ public class OrderController extends BaseController{
      * @return a ResponseEntity containing the placed order and the HTTP status
      */
     @PostMapping
-    public ResponseEntity<Object> placeOrder(@Valid @RequestBody Order order) {
+    public ResponseEntity<Object> placeOrder(@RequestBody Order order) {
         return handleRequest(() -> orderService.placeOrder(order), "Order placed successfully");
     }
 

@@ -1,6 +1,7 @@
 package com.github.mehmetsahinnn.onlineordertrackingsystem.controllers;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.github.mehmetsahinnn.onlineordertrackingsystem.Exceptions.InsufficientStockException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -16,6 +17,9 @@ public abstract class BaseController {
             T result = handler.handle();
             logInfo(logMessages);
             return new ResponseEntity<>(result, HttpStatus.OK);
+        } catch (InsufficientStockException e) {
+            log.error("Error occurred while handling request", e);
+            return new ResponseEntity<>(null, HttpStatus.CONFLICT);
         } catch (RuntimeException e) {
             log.error("Error occurred while handling request", e);
             return new ResponseEntity<>(null, HttpStatus.NOT_FOUND);
