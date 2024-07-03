@@ -1,5 +1,7 @@
 package com.github.mehmetsahinnn.onlineordertrackingsystem.services;
 
+import com.github.mehmetsahinnn.onlineordertrackingsystem.Exceptions.InsufficientStockException;
+import com.github.mehmetsahinnn.onlineordertrackingsystem.Listeners.OrderListener;
 import com.github.mehmetsahinnn.onlineordertrackingsystem.config.KeycloakClient;
 import com.github.mehmetsahinnn.onlineordertrackingsystem.elasticdocuments.OrderDocument;
 import com.github.mehmetsahinnn.onlineordertrackingsystem.elasticrepos.OrderDocumentRepository;
@@ -40,6 +42,10 @@ public class OrderServiceTest {
     private OrderDocumentRepository orderDocumentRepository;
     @InjectMocks
     private ElasticOrderService elasticOrderService;
+    @Mock
+    private ProductRepository productRepository;
+    @Mock
+    private OrderListener orderListener;
 
 
     /**
@@ -246,5 +252,47 @@ public class OrderServiceTest {
         assertEquals("2", result.get(1L).get(1).getId());
     }
 
+    @Test
+    public void insufficientStockException() {
+        // Arrange
+        Product product = new Product(1L, "Product1", "Description", "Category", 10.0, 2);
+        OrderItem orderItem = new OrderItem(1L, null, product, 5, 50.0);
+        Order order = new Order();
+        order.setOrderItems(List.of(orderItem));
+
+        when(productRepository.findById(1L)).thenReturn(Optional.of(product));
+        doThrow(new InsufficientStockException("Insufficient stock for product id: 1")).when(orderRepository).save(any(Order.class));
+
+        // Act & Assert
+        InsufficientStockException exception = assertThrows(InsufficientStockException.class, () -> {
+            orderService.placeOrder(order);
+        });
+
+        assertEquals("Insufficient stock for product id: 1", exception.getMessage());
+
+        verify(orderRepository, never()).save(any(Order.class));
+        verify(productRepository, never()).save(any(Product.class));
+    }
+
+
+    @Test
+    public void productNotFoundException() {
+        // Arrange
+        Product product = new Product(1L, "Product1", "Description", "Category", 10.0, 10);
+        OrderItem orderItem = new OrderItem(1L, null, product, 5, 50.0);
+        Order order = new Order();
+        order.setOrderItems(List.of(orderItem));
+
+        when(productRepository.findById(1L)).thenReturn(Optional.empty());
+
+        // Act & Assert
+        RuntimeException exception = assertThrows(RuntimeException.class, () -> {
+            orderListener.handleMessage(order);
+        });
+
+        assertEquals("Product not found with id: 1", exception.getMessage());
+
+        verify(orderRepository, never()).save(any(Order.class));
+    }
 
 }

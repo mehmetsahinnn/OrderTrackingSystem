@@ -58,7 +58,8 @@ public class OrderService {
      * @throws IllegalArgumentException if the product's stock is insufficient or not available
      */
     @PreAuthorize("hasRole('USER') or hasRole('ADMIN')")
-    public ResponseEntity<Object> placeOrder(Order order){
+    public ResponseEntity<Object> placeOrder(Order order) {
+
         try {
             validateOrder(order);
             order.setOrderTrackId(UUID.randomUUID());
@@ -72,6 +73,9 @@ public class OrderService {
     }
 
     private void validateOrder(Order order) {
+        if (order == null || order.getOrderItems() == null || order.getOrderItems().isEmpty()) {
+            throw new IllegalArgumentException("Order or Order Items cannot be null or empty.");
+        }
         for (OrderItem item : order.getOrderItems()) {
             Product product = productRepository.findById(item.getProduct().getId())
                     .orElseThrow(() -> new RuntimeException("Product not found with id: " + item.getProduct().getId()));

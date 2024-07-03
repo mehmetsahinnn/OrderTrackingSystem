@@ -23,26 +23,28 @@ public class OrderListener {
     private final ProductRepository productRepository;
 
     @Autowired
-    public OrderListener(OrderRepository orderRepository,ProductRepository productRepository) {
+    public OrderListener(OrderRepository orderRepository, ProductRepository productRepository) {
         this.orderRepository = orderRepository;
         this.productRepository = productRepository;
     }
 
     @RabbitListener(queues = "order-queue")
     public void handleMessage(Order order) {
-        System.out.println("Received message: " + order);
+        log.info("Received message: {}", order);
+
         try {
             order.setStatus(OrderStatus.CONFIRMED);
             order.setEstimatedDeliveryDate(LocalDate.now().plusDays(5));
             orderRepository.save(order);
             order.getOrderItems().forEach(this::updateStock);
         } catch (Exception e) {
-            System.err.println("Error processing order: " + e.getMessage());
+            log.error("Error processing order: {}", e.getMessage());
+            throw e;
         }
     }
 
-
     private void updateStock(OrderItem orderItem) {
+
         Product product = productRepository.findById(orderItem.getProduct().getId())
                 .orElseThrow(() -> new RuntimeException("Product not found with id: " + orderItem.getProduct().getId()));
 
