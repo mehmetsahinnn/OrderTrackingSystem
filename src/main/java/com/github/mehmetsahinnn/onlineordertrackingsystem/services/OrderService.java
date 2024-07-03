@@ -58,13 +58,28 @@ public class OrderService {
      * @throws IllegalArgumentException if the product's stock is insufficient or not available
      */
     @PreAuthorize("hasRole('USER') or hasRole('ADMIN')")
-    public ResponseEntity<Object> placeOrder(Order order) {
+    public ResponseEntity<Object> placeOrder(Order order){
         try {
+            validateOrder(order);
             order.setOrderTrackId(UUID.randomUUID());
             orderProducer.sendToQueue(order);
             return ResponseHandler.generateResponse("Order placed successfully.", HttpStatus.CREATED, order);
+        } catch (InsufficientStockException ex) {
+            return ResponseHandler.generateResponse(ex.getMessage(), HttpStatus.CONFLICT, ex);
         } catch (RuntimeException ex) {
-            return ResponseHandler.generateResponse(ex.getMessage(), HttpStatus.BAD_REQUEST, null);
+            return ResponseHandler.generateResponse(ex.getMessage(), HttpStatus.BAD_REQUEST, ex);
+        }
+    }
+
+    private void validateOrder(Order order) {
+        for (OrderItem item : order.getOrderItems()) {
+            Product product = productRepository.findById(item.getProduct().getId())
+                    .orElseThrow(() -> new RuntimeException("Product not found with id: " + item.getProduct().getId()));
+
+            int currentStock = product.getNumberInStock() != null ? product.getNumberInStock() : 0;
+            if (currentStock < item.getQuantity()) {
+                throw new InsufficientStockException("Insufficient stock for product id: " + product.getId());
+            }
         }
     }
 

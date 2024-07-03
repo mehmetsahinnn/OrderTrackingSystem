@@ -49,10 +49,6 @@ public class OrderListener {
         int currentStock = product.getNumberInStock() != null ? product.getNumberInStock() : 0;
         int updatedStock = currentStock - orderItem.getQuantity();
 
-        if (updatedStock < 0) {
-            throw new InsufficientStockException("Insufficient stock for product id: " + product.getId());
-        }
-
         product.setNumberInStock(updatedStock);
         productRepository.save(product);
     }
