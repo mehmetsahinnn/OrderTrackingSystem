@@ -275,24 +275,6 @@ public class OrderServiceTest {
     }
 
 
-    @Test
-    public void productNotFoundException() {
-        // Arrange
-        Product product = new Product(1L, "Product1", "Description", "Category", 10.0, 10);
-        OrderItem orderItem = new OrderItem(1L, null, product, 5, 50.0);
-        Order order = new Order();
-        order.setOrderItems(List.of(orderItem));
 
-        when(productRepository.findById(1L)).thenReturn(Optional.empty());
-
-        // Act & Assert
-        RuntimeException exception = assertThrows(RuntimeException.class, () -> {
-            orderListener.handleMessage(order);
-        });
-
-        assertEquals("Product not found with id: 1", exception.getMessage());
-
-        verify(orderRepository, never()).save(any(Order.class));
-    }
 
 }

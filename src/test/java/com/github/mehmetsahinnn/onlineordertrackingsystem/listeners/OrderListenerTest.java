@@ -1,6 +1,5 @@
 package com.github.mehmetsahinnn.onlineordertrackingsystem.listeners;
 
-import com.github.mehmetsahinnn.onlineordertrackingsystem.Exceptions.InsufficientStockException;
 import com.github.mehmetsahinnn.onlineordertrackingsystem.Listeners.OrderListener;
 import com.github.mehmetsahinnn.onlineordertrackingsystem.enums.OrderStatus;
 import com.github.mehmetsahinnn.onlineordertrackingsystem.models.Order;
@@ -9,7 +8,6 @@ import com.github.mehmetsahinnn.onlineordertrackingsystem.models.Product;
 import com.github.mehmetsahinnn.onlineordertrackingsystem.repositories.OrderRepository;
 import com.github.mehmetsahinnn.onlineordertrackingsystem.repositories.ProductRepository;
 import com.github.mehmetsahinnn.onlineordertrackingsystem.services.OrderService;
-import com.github.mehmetsahinnn.onlineordertrackingsystem.services.ProductService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
@@ -209,6 +207,26 @@ public class OrderListenerTest {
         });
 
         assertEquals("Database error", exception.getMessage());
+    }
+
+    @Test
+    public void productNotFoundException() {
+        // Arrange
+        Product product = new Product(1L, "Product1", "Description", "Category", 10.0, 10);
+        OrderItem orderItem = new OrderItem(1L, null, product, 5, 50.0);
+        Order order = new Order();
+        order.setOrderItems(List.of(orderItem));
+
+        when(productRepository.findById(1L)).thenReturn(Optional.empty());
+
+        // Act & Assert
+        RuntimeException exception = assertThrows(RuntimeException.class, () -> {
+            orderListener.handleMessage(order);
+        });
+
+        assertEquals("Product not found with id: 1", exception.getMessage());
+
+        verify(orderRepository, never()).save(any(Order.class));
     }
 
 }
