@@ -7,6 +7,9 @@ import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
@@ -14,7 +17,6 @@ import org.springframework.stereotype.Service;
 import javax.crypto.SecretKey;
 import java.security.Key;
 import java.util.Date;
-import java.util.List;
 
 /**
  * The CustomerService class provides methods for managing customers.
@@ -41,11 +43,10 @@ public class CustomerService {
      * Saves a customer.
      *
      * @param customer the customer to save
-     * @return the saved customer
      */
-    public Customer saveCustomer(Customer customer) {
+    public void saveCustomer(Customer customer) {
         try {
-            return customerRepository.save(customer);
+            customerRepository.save(customer);
         } catch (Exception e) {
             throw new RuntimeException("An error occurred while saving the customer", e);
         }
@@ -57,9 +58,10 @@ public class CustomerService {
      * @param email the email of the customer to find
      * @return the found customer, or null if no customer was found
      */
+    @Cacheable(value = "customerCache", key = "#email")
     public Customer findByEmail(String email) {
         try {
-            return customerRepository.findByEmail(email);
+            return customerRepository.findByEmail(email).orElse(null);
         } catch (Exception e) {
             throw new RuntimeException("An error occurred while finding the customer", e);
         }
@@ -89,9 +91,9 @@ public class CustomerService {
      * @return A list of all customers
      * @throws RuntimeException If an error occurs while retrieving the customers
      */
-    public List<Customer> findAll() {
+    public Page<Customer> findAll(Pageable pageable) {
         try {
-            return customerRepository.findAll();
+            return customerRepository.findAll(pageable);
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
@@ -163,7 +165,7 @@ public class CustomerService {
                 existingCustomer.setSurname(updatedCustomer.getSurname());
                 existingCustomer.setEmail(updatedCustomer.getEmail());
                 existingCustomer.setPassword(updatedCustomer.getPassword());
-                customerRepository.save(existingCustomer);
+                saveCustomer(existingCustomer);
             }
             return existingCustomer;
         } catch (Exception e) {

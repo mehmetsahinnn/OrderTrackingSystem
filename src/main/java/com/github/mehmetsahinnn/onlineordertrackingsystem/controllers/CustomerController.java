@@ -10,6 +10,9 @@ import com.github.mehmetsahinnn.onlineordertrackingsystem.security.PCrypt;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -84,10 +87,11 @@ public class CustomerController extends BaseController{
      * @return a ResponseEntity containing the list of customers if retrieval is successful, or an error message otherwise
      */
     @GetMapping("/getAllCustomers")
-    public ResponseEntity<?> listCustomers() {
-        return handleRequest(customerService::findAll, "customers");
+    public ResponseEntity<?> listCustomers(@RequestParam int page, @RequestParam int size) {
+        Pageable pageable = PageRequest.of(page, size);
+        Page<Customer> customers = customerService.findAll(pageable);
+        return ResponseEntity.ok(customers);
     }
-
     /**
      * Updates a customer's details.
      *
