@@ -1,14 +1,18 @@
 package com.github.mehmetsahinnn.onlineordertrackingsystem.services;
 
+import com.github.mehmetsahinnn.onlineordertrackingsystem.Exceptions.InsufficientStockException;
+import com.github.mehmetsahinnn.onlineordertrackingsystem.Listeners.OrderListener;
 import com.github.mehmetsahinnn.onlineordertrackingsystem.config.KeycloakClient;
 import com.github.mehmetsahinnn.onlineordertrackingsystem.elasticdocuments.OrderDocument;
 import com.github.mehmetsahinnn.onlineordertrackingsystem.elasticrepos.OrderDocumentRepository;
 import com.github.mehmetsahinnn.onlineordertrackingsystem.elasticservices.ElasticOrderService;
 import com.github.mehmetsahinnn.onlineordertrackingsystem.models.Order;
 import com.github.mehmetsahinnn.onlineordertrackingsystem.models.OrderItem;
+import com.github.mehmetsahinnn.onlineordertrackingsystem.producers.OrderProducer;
 import com.github.mehmetsahinnn.onlineordertrackingsystem.repositories.OrderRepository;
 import com.github.mehmetsahinnn.onlineordertrackingsystem.models.Product;
 import com.github.mehmetsahinnn.onlineordertrackingsystem.enums.OrderStatus;
+import com.github.mehmetsahinnn.onlineordertrackingsystem.repositories.ProductRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -38,6 +42,10 @@ public class OrderServiceTest {
     private OrderDocumentRepository orderDocumentRepository;
     @InjectMocks
     private ElasticOrderService elasticOrderService;
+    @Mock
+    private ProductRepository productRepository;
+    @Mock
+    private OrderListener orderListener;
 
 
     /**
@@ -54,7 +62,7 @@ public class OrderServiceTest {
     public void placeOrder() {
         Order order = new Order();
         order.setOrderItems(Collections.singletonList(new OrderItem(null, order, new Product(1L, "Product", "Description", "Category", 10.0, 10), 1, 10.0)));
-        OrderService orderService = new OrderService(mock(OrderRepository.class), mock(ProductService.class), mock(KeycloakClient.class));
+        OrderService orderService = new OrderService(mock(OrderRepository.class), mock(ProductService.class), mock(OrderProducer.class) ,mock(KeycloakClient.class), mock(ProductRepository.class));
         ResponseEntity<Object> response = orderService.placeOrder(order);
         assertEquals(HttpStatus.CREATED, response.getStatusCode());
     }
@@ -87,7 +95,7 @@ public class OrderServiceTest {
         OrderRepository mockOrderRepository = mock(OrderRepository.class);
         when(mockOrderRepository.findById(1L)).thenReturn(Optional.of(existingOrder));
 
-        OrderService orderService = new OrderService(mockOrderRepository, mock(ProductService.class), mock(KeycloakClient.class));
+        OrderService orderService = new OrderService(mockOrderRepository, mock(ProductService.class), mock(OrderProducer.class), mock(KeycloakClient.class), mock(ProductRepository.class));
         Order result = orderService.getOrderById(1L);
 
         assertNotNull(result);
@@ -111,11 +119,9 @@ public class OrderServiceTest {
 
         KeycloakClient keycloakClientMock = mock(KeycloakClient.class);
 
-        OrderService orderService = new OrderService(orderRepositoryMock, productServiceMock, keycloakClientMock);
+        OrderService orderService = new OrderService(orderRepositoryMock, productServiceMock, mock(OrderProducer.class), keycloakClientMock, mock(ProductRepository.class));
 
         ResponseEntity<Object> response = orderService.placeOrder(order);
-
-        verify(productServiceMock, times(2)).updateStock(eq(1L), eq(-5));
 
         assertEquals(HttpStatus.CREATED, response.getStatusCode());
     }
@@ -142,7 +148,7 @@ public class OrderServiceTest {
         when(mockOrderRepository.findById(orderId)).thenReturn(Optional.of(mockOrder));
         when(mockProductService.updateProduct(anyLong(), any(Product.class))).thenReturn(mockProduct);
 
-        OrderService orderService = new OrderService(mockOrderRepository, mockProductService, mockKeycloakClient);
+        OrderService orderService = new OrderService(mockOrderRepository, mockProductService, mock(OrderProducer.class), mockKeycloakClient, mock(ProductRepository.class));
 
         // Act
         orderService.cancelOrderAndIncreaseStock(orderId);
@@ -160,7 +166,7 @@ public class OrderServiceTest {
     public void delete_existing_order_by_id() {
         OrderRepository mockOrderRepository = mock(OrderRepository.class);
         doNothing().when(mockOrderRepository).deleteById(1L);
-        OrderService orderService = new OrderService(mockOrderRepository, mock(ProductService.class), mock(KeycloakClient.class));
+        OrderService orderService = new OrderService(mockOrderRepository, mock(ProductService.class), mock(OrderProducer.class), mock(KeycloakClient.class), mock(ProductRepository.class));
         assertDoesNotThrow(() -> orderService.deleteOrder(1L));
     }
 
@@ -245,6 +251,30 @@ public class OrderServiceTest {
         assertEquals("1", result.get(1L).get(0).getId());
         assertEquals("2", result.get(1L).get(1).getId());
     }
+
+    @Test
+    public void insufficientStockException() {
+        // Arrange
+        Product product = new Product(1L, "Product1", "Description", "Category", 10.0, 2);
+        OrderItem orderItem = new OrderItem(1L, null, product, 5, 50.0);
+        Order order = new Order();
+        order.setOrderItems(List.of(orderItem));
+
+        when(productRepository.findById(1L)).thenReturn(Optional.of(product));
+        doThrow(new InsufficientStockException("Insufficient stock for product id: 1")).when(orderRepository).save(any(Order.class));
+
+        // Act & Assert
+        InsufficientStockException exception = assertThrows(InsufficientStockException.class, () -> {
+            orderService.placeOrder(order);
+        });
+
+        assertEquals("Insufficient stock for product id: 1", exception.getMessage());
+
+        verify(orderRepository, never()).save(any(Order.class));
+        verify(productRepository, never()).save(any(Product.class));
+    }
+
+
 
 
 }

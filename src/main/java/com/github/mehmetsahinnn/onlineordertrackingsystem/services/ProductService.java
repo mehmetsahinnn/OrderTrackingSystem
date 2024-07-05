@@ -1,8 +1,7 @@
 package com.github.mehmetsahinnn.onlineordertrackingsystem.services;
 
 import com.github.mehmetsahinnn.onlineordertrackingsystem.Exceptions.CustomUpdateStockException;
-import com.github.mehmetsahinnn.onlineordertrackingsystem.Exceptions.ProductNotFoundException;
-import com.github.mehmetsahinnn.onlineordertrackingsystem.Exceptions.ProductRetrievalException;
+import com.github.mehmetsahinnn.onlineordertrackingsystem.Exceptions.InsufficientStockException;
 import com.github.mehmetsahinnn.onlineordertrackingsystem.models.Product;
 import com.github.mehmetsahinnn.onlineordertrackingsystem.repositories.ProductRepository;
 import org.slf4j.Logger;
@@ -11,8 +10,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 
 /**
  * The ProductService class provides services for managing products.
@@ -70,12 +69,11 @@ public class ProductService {
      * @return the retrieved product
      */
     public Product getProductById(Long id) {
-        try {
-            return productRepository.findById(id).orElse((Product) Collections.emptyList());
-        } catch (Exception e) {
-            logger.error("Error occurred while retrieving the product with id: {}", id, e);
-            throw new RuntimeException("Error occurred while retrieving the product with id: " + id, e);
+        Optional<Product> optionalProduct = productRepository.findById(id);
+        if (optionalProduct.isEmpty()) {
+            throw new RuntimeException("Error occurred while retrieving the product with id: " + id);
         }
+        return optionalProduct.get();
     }
 
     /**
@@ -146,43 +144,6 @@ public class ProductService {
         } catch (Exception e) {
             logger.error("Error occurred while searching for products by price", e);
             throw new RuntimeException("Error occurred while searching for products by price", e);
-        }
-    }
-
-    /**
-     * Updates the stock of a product.
-     *
-     * @param id          the ID of the product to update
-     * @param newQuantity the new quantity of the product
-     */
-    @Transactional
-    public void updateStock(Long id, Integer newQuantity) {
-        if (newQuantity == null || newQuantity < 0) {
-            throw new IllegalArgumentException("Invalid quantity. Quantity must be a non-negative integer.");
-        }
-        try {
-            Product product = findProductById(id);
-            Integer oldProduct = findProductById(id).getNumberInStock();
-            product.setNumberInStock(oldProduct + newQuantity);
-            productRepository.save(product);
-        } catch (Exception e) {
-            logger.error("Error occurred while updating the stock of the product with id: {}", id, e);
-            throw new CustomUpdateStockException("Error occurred while updating the stock of the product with id: " + id, e);
-        }
-    }
-
-    /**
-     * Retrieves a product by its ID.
-     *
-     * @param id the ID of the product to retrieve
-     * @return the retrieved product
-     */
-    private Product findProductById(Long id) {
-        try {
-            return productRepository.findById(id).orElseThrow(() -> new ProductNotFoundException("Product not found with id: " + id));
-        } catch (Exception e) {
-            logger.error("Error occurred while retrieving the product with id: {}", id, e);
-            throw new ProductRetrievalException("Error occurred while retrieving the product with id: " + id, e);
         }
     }
 

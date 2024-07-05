@@ -2,16 +2,16 @@ package com.github.mehmetsahinnn.onlineordertrackingsystem.controllers;
 
 import com.github.mehmetsahinnn.onlineordertrackingsystem.elasticdocuments.OrderDocument;
 import com.github.mehmetsahinnn.onlineordertrackingsystem.elasticservices.ElasticOrderService;
-import com.github.mehmetsahinnn.onlineordertrackingsystem.enums.OrderStatus;
 import com.github.mehmetsahinnn.onlineordertrackingsystem.services.OrderService;
 import com.github.mehmetsahinnn.onlineordertrackingsystem.models.Order;
-import lombok.extern.log4j.Log4j2;
+import jakarta.validation.Valid;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.UUID;
 
 
 /**
@@ -20,7 +20,7 @@ import java.util.List;
  */
 @RestController
 @RequestMapping("/api/orders")
-@Log4j2
+@Slf4j
 public class OrderController extends BaseController{
 
     private final OrderService orderService;
@@ -114,5 +114,10 @@ public class OrderController extends BaseController{
     @GetMapping("/elastic/orders")
     public List<OrderDocument> getOrdersByStatus(@RequestParam String status) {
         return elasticOrderService.findByStatus(status);
+    }
+
+    @GetMapping("/{orderTrackId}")
+    public Order getOrderByTrackId(@PathVariable UUID orderTrackId) {
+        return orderService.getOrderByTrackId(orderTrackId);
     }
 }

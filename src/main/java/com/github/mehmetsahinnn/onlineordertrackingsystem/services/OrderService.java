@@ -5,9 +5,11 @@ import com.github.mehmetsahinnn.onlineordertrackingsystem.config.KeycloakClient;
 import com.github.mehmetsahinnn.onlineordertrackingsystem.config.ResponseHandler;
 import com.github.mehmetsahinnn.onlineordertrackingsystem.models.Order;
 import com.github.mehmetsahinnn.onlineordertrackingsystem.models.OrderItem;
+import com.github.mehmetsahinnn.onlineordertrackingsystem.producers.OrderProducer;
 import com.github.mehmetsahinnn.onlineordertrackingsystem.repositories.OrderRepository;
 import com.github.mehmetsahinnn.onlineordertrackingsystem.enums.OrderStatus;
 import com.github.mehmetsahinnn.onlineordertrackingsystem.models.Product;
+import com.github.mehmetsahinnn.onlineordertrackingsystem.repositories.ProductRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,10 +18,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 
-import java.util.Collections;
-import java.util.List;
-import java.util.NoSuchElementException;
-import java.util.Optional;
+import java.util.*;
 
 /**
  * The OrderService class provides services for managing orders.
@@ -29,8 +28,9 @@ import java.util.Optional;
 public class OrderService {
     private final OrderRepository orderRepository;
     private final ProductService productService;
-    private static final Logger logger = LoggerFactory.getLogger(OrderService.class);
+    private final OrderProducer orderProducer;
     private final KeycloakClient keycloakClient;
+    private final ProductRepository productRepository;
 
 
     /**
@@ -40,10 +40,12 @@ public class OrderService {
      * @param productService  the ProductService to be used by the OrderService
      */
     @Autowired
-    public OrderService(OrderRepository orderRepository, ProductService productService, KeycloakClient keycloakClient) {
+    public OrderService(OrderRepository orderRepository, ProductService productService, OrderProducer orderProducer, KeycloakClient keycloakClient, ProductRepository productRepository) {
         this.orderRepository = orderRepository;
         this.productService = productService;
+        this.orderProducer = orderProducer;
         this.keycloakClient = keycloakClient;
+        this.productRepository = productRepository;
     }
 
     /**
@@ -57,30 +59,34 @@ public class OrderService {
      */
     @PreAuthorize("hasRole('USER') or hasRole('ADMIN')")
     public ResponseEntity<Object> placeOrder(Order order) {
+
         try {
-            order.getOrderItems().forEach(this::validateAndUpdateStock);
-
-            order.setStatus(OrderStatus.CONFIRMED);
-            Order savedOrder = orderRepository.save(order);
-
-            return ResponseHandler.generateResponse("Order placed successfully.", HttpStatus.CREATED, savedOrder);
+            validateOrder(order);
+            order.setOrderTrackId(UUID.randomUUID());
+            orderProducer.sendToQueue(order);
+            return ResponseHandler.generateResponse("Order placed successfully.", HttpStatus.CREATED, order);
+        } catch (InsufficientStockException ex) {
+            return ResponseHandler.generateResponse(ex.getMessage(), HttpStatus.CONFLICT, ex);
         } catch (RuntimeException ex) {
-            return ResponseHandler.generateResponse(ex.getMessage(), HttpStatus.BAD_REQUEST, null);
+            return ResponseHandler.generateResponse(ex.getMessage(), HttpStatus.BAD_REQUEST, ex);
         }
     }
 
-
-    private void validateAndUpdateStock(OrderItem orderItem) {
-        Product product = orderItem.getProduct();
-        int numberInStock = Optional.ofNullable(product.getNumberInStock()).orElse(0);
-
-        if (orderItem.getQuantity() > numberInStock) {
-            logger.error("Error occurred while placing the order: Insufficient stock for product id: {}", product.getId());
-            throw new InsufficientStockException("Insufficient stock for product id: " + product.getId());
+    private void validateOrder(Order order) {
+        if (order == null || order.getOrderItems() == null || order.getOrderItems().isEmpty()) {
+            throw new IllegalArgumentException("Order or Order Items cannot be null or empty.");
         }
+        for (OrderItem item : order.getOrderItems()) {
+            Product product = productRepository.findById(item.getProduct().getId())
+                    .orElseThrow(() -> new RuntimeException("Product not found with id: " + item.getProduct().getId()));
 
-        productService.updateStock(product.getId(), -orderItem.getQuantity());
+            int currentStock = product.getNumberInStock() != null ? product.getNumberInStock() : 0;
+            if (currentStock < item.getQuantity()) {
+                throw new InsufficientStockException("Insufficient stock for product id: " + product.getId());
+            }
+        }
     }
+
 
     /**
      * Retrieves an order by its ID.
@@ -156,8 +162,6 @@ public class OrderService {
             throw new RuntimeException("Order must be SHIPPED before it can be DELIVERED");
         } else if (newStatus == OrderStatus.CANCELLED && currentStatus == OrderStatus.DELIVERED) {
             throw new RuntimeException("DELIVERED orders cannot be CANCELLED");
-        } else if (newStatus == OrderStatus.CANCELLED && currentStatus == OrderStatus.CONFIRMED) {
-            // Allow orders to be cancelled if they are in the CONFIRMED state
         }
         return newStatus;
     }
@@ -194,5 +198,8 @@ public class OrderService {
         }
     }
 
+    public Order getOrderByTrackId(UUID orderTrackId) {
+        return orderRepository.findByOrderTrackId(orderTrackId);
+    }
 
 }

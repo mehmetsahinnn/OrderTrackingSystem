@@ -1,5 +1,8 @@
 package com.github.mehmetsahinnn.onlineordertrackingsystem;
 
+import com.github.mehmetsahinnn.onlineordertrackingsystem.producers.OrderProducer;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.security.servlet.SecurityAutoConfiguration;
@@ -15,8 +18,10 @@ import springfox.documentation.swagger2.annotations.EnableSwagger2;
 @EnableElasticsearchRepositories
 public class OnlineOrderTrackingSystemApplication {
 
+
 	public static void main(String[] args) {
 		SpringApplication.run(OnlineOrderTrackingSystemApplication.class, args);
 	}
+
 
 }
