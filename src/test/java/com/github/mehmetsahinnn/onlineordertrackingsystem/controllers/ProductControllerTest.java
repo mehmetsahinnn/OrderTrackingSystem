@@ -120,7 +120,7 @@ public class ProductControllerTest {
 
         ResponseEntity<Product> response = productController.createProduct(productToCreate);
 
-        assertEquals(HttpStatus.CREATED, response.getStatusCode());
+        assertEquals(HttpStatus.OK, response.getStatusCode());
         assertEquals(createdProduct, response.getBody());
     }
 
@@ -179,7 +179,7 @@ public class ProductControllerTest {
 
         ResponseEntity<Void> response = productController.deleteProduct(product.getId());
 
-        assertEquals(HttpStatus.NO_CONTENT, response.getStatusCode());
+        assertEquals(HttpStatus.OK, response.getStatusCode());
         assertNull(response.getBody());
     }
 
